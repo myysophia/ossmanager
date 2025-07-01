@@ -24,6 +24,7 @@ type AppConfig struct {
 	Port             int
 	ReadTimeout      int    `mapstructure:"read_timeout"`
 	WriteTimeout     int    `mapstructure:"write_timeout"`
+	IdleTimeout      int    `mapstructure:"idle_timeout"`
 	UploadTempDir    string `mapstructure:"upload_temp_dir"`
 	MaxFileSize      int64  `mapstructure:"max_file_size"`
 	Workers          int    `mapstructure:"workers"`           // MD5计算的工作协程数量

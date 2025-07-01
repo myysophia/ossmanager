@@ -24,9 +24,9 @@ server := &http.Server{
     // 禁用HTTP/2，强制使用HTTP/1.1
     TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler)),
     // 设置超时时间，优化长连接
-    ReadTimeout:       30 * time.Second,
-    WriteTimeout:      30 * time.Second,
-    IdleTimeout:       60 * time.Second,
+    ReadTimeout:       time.Duration(cfg.App.ReadTimeout) * time.Second,
+    WriteTimeout:      time.Duration(cfg.App.WriteTimeout) * time.Second,
+    IdleTimeout:       time.Duration(cfg.App.IdleTimeout) * time.Second,
     ReadHeaderTimeout: 10 * time.Second,
 }
 ```

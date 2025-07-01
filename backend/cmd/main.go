@@ -67,6 +67,10 @@ func main() {
 	if cfg.App.WriteTimeout <= 0 {
 		writeTimeout = 0
 	}
+	idleTimeout := time.Duration(cfg.App.IdleTimeout) * time.Second
+	if cfg.App.IdleTimeout <= 0 {
+		idleTimeout = 0
+	}
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", cfg.App.Host, cfg.App.Port),
@@ -76,7 +80,7 @@ func main() {
 		// 设置超时时间，优化长连接
 		ReadTimeout:       readTimeout,
 		WriteTimeout:      writeTimeout,
-		IdleTimeout:       60 * time.Second,
+		IdleTimeout:       idleTimeout,
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 
