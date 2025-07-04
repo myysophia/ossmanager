@@ -16,7 +16,9 @@
     "start": "next start",
     "start:test": "next start --env-file=.env.test",
     "start:prod": "next start --env-file=.env.production",
-    "lint": "next lint"
+    "lint": "next lint",
+    "docs:dev": "dumi dev",
+    "docs:build": "dumi build"
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.2.4",
@@ -57,6 +59,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.2.3",
     "postcss": "^8.5.3",
-    "typescript": "^5"
+    "typescript": "^5",
+    "dumi": "^2.1.0"
   }
 }
