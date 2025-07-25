@@ -89,27 +89,34 @@ func (s *AliyunOSSService) getEndpoint(regionCode string) string {
 // Upload 上传文件
 func (s *AliyunOSSService) Upload(file io.Reader, objectKey string) (string, error) {
 	fullObjectKey := s.getObjectKey(objectKey)
-	err := s.bucket.PutObject(fullObjectKey, file)
-	if err != nil {
-		logger.Error("阿里云OSS上传文件失败", zap.String("objectKey", fullObjectKey), zap.Error(err))
-		return "", fmt.Errorf("上传文件到阿里云OSS失败: %w", err)
+
+	// 设置Content-Disposition为attachment，强制下载而不是预览
+	options := []oss.Option{
+		oss.ContentDisposition("attachment"),
 	}
 
-	// 返回可访问的URL
-	signedURL, err := s.bucket.SignURL(fullObjectKey, oss.HTTPGet, int64(s.config.GetOSSURLExpiration().Seconds()))
+	// 上传文件
+	err := s.bucket.PutObject(fullObjectKey, file, options...)
 	if err != nil {
-		logger.Error("生成阿里云OSS下载URL失败", zap.String("objectKey", fullObjectKey), zap.Error(err))
-		return "", fmt.Errorf("生成阿里云OSS下载URL失败: %w", err)
+		logger.Error("上传文件失败", zap.String("objectKey", fullObjectKey), zap.Error(err))
+		return "", fmt.Errorf("上传文件失败: %w", err)
 	}
 
-	return signedURL, nil
+	// 生成下载链接
+	url, err := s.bucket.SignURL(fullObjectKey, oss.HTTPGet, 24*3600)
+	if err != nil {
+		logger.Error("生成下载链接失败", zap.String("objectKey", fullObjectKey), zap.Error(err))
+		return "", fmt.Errorf("生成下载链接失败: %w", err)
+	}
+
+	return url, nil
 }
 
 // InitMultipartUpload 初始化分片上传
 func (s *AliyunOSSService) InitMultipartUpload(filename string) (string, []string, error) {
 	objectKey := s.getObjectKey(filename)
-	// 初始化分片上传
-	imur, err := s.bucket.InitiateMultipartUpload(objectKey)
+	// 初始化分片上传，设置Content-Disposition为attachment
+	imur, err := s.bucket.InitiateMultipartUpload(objectKey, oss.ContentDisposition("attachment"))
 	if err != nil {
 		logger.Error("初始化阿里云OSS分片上传失败", zap.String("filename", filename), zap.Error(err))
 		return "", nil, fmt.Errorf("初始化阿里云OSS分片上传失败: %w", err)
@@ -475,7 +482,12 @@ func (s *AliyunOSSService) UploadToBucket(file io.Reader, objectKey string, regi
 		zap.String("objectKey", objectKey),
 		zap.String("bucketName", bucketName))
 
-	err = bucket.PutObject(objectKey, file)
+	// 设置Content-Disposition为attachment，强制下载而不是预览
+	options := []oss.Option{
+		oss.ContentDisposition("attachment"),
+	}
+
+	err = bucket.PutObject(objectKey, file, options...)
 	if err != nil {
 		logger.Error("上传文件失败",
 			zap.String("objectKey", objectKey),
@@ -529,7 +541,10 @@ func (s *AliyunOSSService) UploadToBucketWithProgress(file io.Reader, objectKey 
 	if err != nil {
 		return "", err
 	}
-	options := []oss.Option{oss.Progress(listener)}
+	options := []oss.Option{
+		oss.Progress(listener),
+		oss.ContentDisposition("attachment"),
+	}
 	if err := bucket.PutObject(objectKey, file, options...); err != nil {
 		return "", err
 	}
@@ -576,8 +591,8 @@ func (s *AliyunOSSService) InitMultipartUploadToBucket(objectKey string, regionC
 		return "", nil, fmt.Errorf("获取存储桶失败: %w", err)
 	}
 
-	// 初始化分片上传
-	result, err := bucket.InitiateMultipartUpload(objectKey)
+	// 初始化分片上传，设置Content-Disposition为attachment
+	result, err := bucket.InitiateMultipartUpload(objectKey, oss.ContentDisposition("attachment"))
 	if err != nil {
 		return "", nil, fmt.Errorf("初始化分片上传失败: %w", err)
 	}
@@ -700,4 +715,77 @@ func (s *AliyunOSSService) GenerateDownloadURLWithBucket(objectKey string, downl
 		return "", time.Time{}, err
 	}
 	return signedURL, expires, nil
+}
+
+// DeleteObjectFromBucket 删除指定存储桶中的文件
+func (s *AliyunOSSService) DeleteObjectFromBucket(objectKey string, regionCode string, bucketName string) error {
+	logger.Info("开始删除指定存储桶中的文件",
+		zap.String("objectKey", objectKey),
+		zap.String("regionCode", regionCode),
+		zap.String("bucketName", bucketName))
+
+	// 验证输入参数
+	if objectKey == "" {
+		logger.Error("删除文件失败：对象键为空")
+		return fmt.Errorf("对象键不能为空")
+	}
+	if regionCode == "" {
+		logger.Error("删除文件失败：区域代码为空")
+		return fmt.Errorf("区域代码不能为空")
+	}
+	if bucketName == "" {
+		logger.Error("删除文件失败：存储桶名称为空")
+		return fmt.Errorf("存储桶名称不能为空")
+	}
+
+	// 获取正确的endpoint（考虑传输加速）
+	endpoint := s.getEndpoint(regionCode)
+
+	logger.Info("创建OSS客户端用于删除文件",
+		zap.String("endpoint", endpoint),
+		zap.String("regionCode", regionCode),
+		zap.Bool("transferAccelerate", s.config.TransferAccelerate.Enabled))
+
+	// 创建指定地域的客户端
+	client, err := oss.New(endpoint, s.config.AccessKeyID, s.config.AccessKeySecret)
+	if err != nil {
+		logger.Error("创建OSS客户端失败",
+			zap.String("endpoint", endpoint),
+			zap.String("regionCode", regionCode),
+			zap.Error(err))
+		return fmt.Errorf("创建OSS客户端失败: %w", err)
+	}
+
+	// 获取指定的存储桶
+	logger.Info("获取存储桶用于删除文件", zap.String("bucketName", bucketName))
+	bucket, err := client.Bucket(bucketName)
+	if err != nil {
+		logger.Error("获取存储桶失败",
+			zap.String("bucketName", bucketName),
+			zap.String("regionCode", regionCode),
+			zap.Error(err))
+		return fmt.Errorf("获取存储桶失败: %w", err)
+	}
+
+	// 删除文件
+	logger.Info("开始删除文件",
+		zap.String("objectKey", objectKey),
+		zap.String("bucketName", bucketName))
+
+	err = bucket.DeleteObject(objectKey)
+	if err != nil {
+		logger.Error("删除文件失败",
+			zap.String("objectKey", objectKey),
+			zap.String("bucketName", bucketName),
+			zap.String("regionCode", regionCode),
+			zap.Error(err))
+		return fmt.Errorf("删除文件失败: %w", err)
+	}
+
+	logger.Info("文件删除成功",
+		zap.String("objectKey", objectKey),
+		zap.String("bucketName", bucketName),
+		zap.String("regionCode", regionCode))
+
+	return nil
 }

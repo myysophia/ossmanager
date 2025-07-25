@@ -40,8 +40,12 @@ func (m *MockStorageService) GetObject(objectKey string) (io.ReadCloser, error) 
 
 // DeleteObject 删除对象
 func (m *MockStorageService) DeleteObject(objectKey string) error {
-	args := m.Called(objectKey)
-	return args.Error(0)
+	return nil
+}
+
+// DeleteObjectFromBucket 删除指定存储桶中的文件
+func (m *MockStorageService) DeleteObjectFromBucket(objectKey string, regionCode string, bucketName string) error {
+	return nil
 }
 
 // GetObjectInfo 获取对象信息

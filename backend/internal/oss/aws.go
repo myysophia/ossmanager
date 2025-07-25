@@ -235,6 +235,12 @@ func (s *AWSS3Service) DeleteObject(objectKey string) error {
 	return nil
 }
 
+// DeleteObjectFromBucket 删除指定存储桶中的文件
+func (s *AWSS3Service) DeleteObjectFromBucket(objectKey string, regionCode string, bucketName string) error {
+	// AWS S3暂未实现指定存储桶删除功能
+	return fmt.Errorf("AWS S3暂未实现指定存储桶删除功能")
+}
+
 // GetObjectInfo 获取对象信息
 func (s *AWSS3Service) GetObjectInfo(objectKey string) (int64, error) {
 	objectKey = s.getObjectKey(objectKey)

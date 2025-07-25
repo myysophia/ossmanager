@@ -76,6 +76,13 @@ type StorageService interface {
 	// DeleteObject 删除文件
 	DeleteObject(objectKey string) error
 
+	// DeleteObjectFromBucket 删除指定存储桶中的文件
+	// objectKey: 对象键
+	// regionCode: 区域代码
+	// bucketName: 存储桶名称
+	// 返回：错误
+	DeleteObjectFromBucket(objectKey string, regionCode string, bucketName string) error
+
 	// GetObjectInfo 获取对象信息
 	// objectKey: 对象键
 	// 返回：对象大小, 错误

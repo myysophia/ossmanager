@@ -242,11 +242,17 @@ func (s *CloudflareR2Service) DeleteObject(objectKey string) error {
 		Key:    aws.String(fullObjectKey),
 	})
 	if err != nil {
-		logger.Error("删除CloudFlare R2对象失败", zap.String("objectKey", fullObjectKey), zap.Error(err))
-		return fmt.Errorf("删除CloudFlare R2对象失败: %w", err)
+		logger.Error("删除Cloudflare R2对象失败", zap.String("objectKey", fullObjectKey), zap.Error(err))
+		return fmt.Errorf("删除Cloudflare R2对象失败: %w", err)
 	}
 
 	return nil
+}
+
+// DeleteObjectFromBucket 删除指定存储桶中的文件
+func (s *CloudflareR2Service) DeleteObjectFromBucket(objectKey string, regionCode string, bucketName string) error {
+	// Cloudflare R2暂未实现指定存储桶删除功能
+	return fmt.Errorf("Cloudflare R2暂未实现指定存储桶删除功能")
 }
 
 // GetObjectInfo 获取对象信息
