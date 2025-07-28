@@ -241,8 +241,8 @@ func (h *OSSFileHandler) uploadStreamWithChunking(c *gin.Context, chunkThreshold
 	// 检查是否强制覆盖
 	forceOverwrite := c.GetHeader("X-Force-Overwrite") == "true"
 
-	// 生成固定的文件路径
-	username, _ := c.Get("username")
+	// 声明 objectKey 变量
+	var objectKey string
 
 	// 获取自定义路径
 	customPath := c.GetHeader("X-Custom-Path")
@@ -254,9 +254,16 @@ func (h *OSSFileHandler) uploadStreamWithChunking(c *gin.Context, chunkThreshold
 			h.Error(c, utils.CodeInvalidParams, "自定义路径包含非法字符")
 			return
 		}
-		objectKey = utils.GenerateFixedObjectKeyWithPath(username.(string), customPath, originalFilename)
+		// 使用用户自定义路径
+		if customPath == "" {
+			// 自定义路径为空，直接上传到根目录
+			objectKey = originalFilename
+		} else {
+			objectKey = customPath + "/" + originalFilename
+		}
 	} else {
-		objectKey = utils.GenerateFixedObjectKey(username.(string), originalFilename)
+		// 没有提供自定义路径，直接上传到根目录
+		objectKey = originalFilename
 	}
 
 	// 如果不是强制覆盖，检查文件是否已存在
