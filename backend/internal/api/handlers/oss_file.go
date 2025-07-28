@@ -1188,6 +1188,35 @@ func (h *OSSFileHandler) GetDownloadURL(c *gin.Context) {
 		return
 	}
 
+	// 获取过期时间参数，支持以下选项：
+	// 1, 2, 3, 6, 12, 24, 48 小时，0 表示永不过期
+	expireHoursStr := c.Query("expire_hours")
+	var expireDuration time.Duration
+	var neverExpires bool = false
+	
+	if expireHoursStr != "" {
+		if expireHours, err := strconv.Atoi(expireHoursStr); err == nil {
+			switch expireHours {
+			case 0:
+				// 0 表示永不过期
+				neverExpires = true
+				expireDuration = 0 // 这个值不会被使用
+			case 1, 2, 3, 6, 12, 24, 48:
+				// 允许的小时数
+				expireDuration = time.Duration(expireHours) * time.Hour
+			default:
+				// 不在允许范围内，使用默认值1小时
+				expireDuration = 1 * time.Hour
+			}
+		} else {
+			// 解析失败时使用默认值
+			expireDuration = 1 * time.Hour
+		}
+	} else {
+		// 未指定时使用默认值
+		expireDuration = 1 * time.Hour
+	}
+
 	// 通过存储桶名称获取区域信息
 	regionCode, err := h.getRegionByBucket(file.Bucket)
 	if err != nil {
@@ -1217,27 +1246,65 @@ func (h *OSSFileHandler) GetDownloadURL(c *gin.Context) {
 		return
 	}
 
-	// 动态生成下载链接，传递 bucket 信息
+	// 动态生成下载链接
 	var downloadURL string
 	var expires time.Time
-	if aliyunStorage, ok := storage.(*oss.AliyunOSSService); ok {
-		downloadURL, expires, err = aliyunStorage.GenerateDownloadURLWithBucket(file.ObjectKey, file.DownloadURL, 1*time.Hour)
-		if err != nil {
-			h.Error(c, utils.CodeServerError, "生成下载链接失败")
-			return
+	
+	if neverExpires {
+		// 永不过期：返回文件的原始下载链接（如果是公共访问的桶）或者使用一个很长的过期时间
+		if aliyunStorage, ok := storage.(*oss.AliyunOSSService); ok {
+			// 对于阿里云OSS，使用最大允许的过期时间（7天）作为近似永不过期
+			// 实际应用中可能需要定期刷新链接
+			downloadURL, expires, err = aliyunStorage.GenerateDownloadURLWithBucket(file.ObjectKey, file.DownloadURL, 7*24*time.Hour)
+			if err != nil {
+				h.Error(c, utils.CodeServerError, "生成下载链接失败")
+				return
+			}
+			// 设置一个特殊的过期时间表示永不过期
+			expires = time.Time{} // 零值表示永不过期
+		} else {
+			downloadURL, expires, err = storage.GenerateDownloadURL(file.ObjectKey, 7*24*time.Hour)
+			if err != nil {
+				h.Error(c, utils.CodeServerError, "生成下载链接失败")
+				return
+			}
+			expires = time.Time{} // 零值表示永不过期
 		}
 	} else {
-		downloadURL, expires, err = storage.GenerateDownloadURL(file.ObjectKey, 24*time.Hour)
-		if err != nil {
-			h.Error(c, utils.CodeServerError, "生成下载链接失败")
-			return
+		// 使用指定的过期时间
+		if aliyunStorage, ok := storage.(*oss.AliyunOSSService); ok {
+			downloadURL, expires, err = aliyunStorage.GenerateDownloadURLWithBucket(file.ObjectKey, file.DownloadURL, expireDuration)
+			if err != nil {
+				h.Error(c, utils.CodeServerError, "生成下载链接失败")
+				return
+			}
+		} else {
+			downloadURL, expires, err = storage.GenerateDownloadURL(file.ObjectKey, expireDuration)
+			if err != nil {
+				h.Error(c, utils.CodeServerError, "生成下载链接失败")
+				return
+			}
 		}
 	}
 
-	h.Success(c, gin.H{
+	logger.Info("生成文件下载链接",
+		zap.String("fileID", fileID),
+		zap.String("objectKey", file.ObjectKey),
+		zap.Bool("neverExpires", neverExpires),
+		zap.Duration("expireDuration", expireDuration),
+		zap.Time("expires", expires))
+
+	response := gin.H{
 		"download_url": downloadURL,
-		"expires":      expires,
-	})
+		"never_expires": neverExpires,
+	}
+	
+	if !neverExpires {
+		response["expires"] = expires
+		response["expire_hours"] = int(expireDuration.Hours())
+	}
+	
+	h.Success(c, response)
 }
 
 // GetByOriginalFilename 根据原始文件名获取文件详情
