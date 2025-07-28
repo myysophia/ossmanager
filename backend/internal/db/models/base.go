@@ -24,4 +24,4 @@ func (m *Model) BeforeCreate(tx *gorm.DB) error {
 func (m *Model) BeforeUpdate(tx *gorm.DB) error {
 	m.UpdatedAt = time.Now()
 	return nil
-} 
+}

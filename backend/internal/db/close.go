@@ -12,4 +12,4 @@ func Close() error {
 	}
 
 	return sqlDB.Close()
-} 
+}

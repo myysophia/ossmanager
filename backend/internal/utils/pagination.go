@@ -72,4 +72,4 @@ func GetPaginationResult(p *Pagination, list interface{}) map[string]interface{}
 		"total":        p.Total,
 		"pages":        p.Pages,
 	}
-} 
+}

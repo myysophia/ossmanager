@@ -34,4 +34,4 @@ func (u *User) CheckPassword(password string) bool {
 // TableName 指定表名
 func (User) TableName() string {
 	return "users"
-} 
+}

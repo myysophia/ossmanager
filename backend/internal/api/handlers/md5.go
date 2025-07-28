@@ -78,7 +78,7 @@ func (h *MD5Handler) GetMD5(c *gin.Context) {
 		h.Success(c, gin.H{
 			"message": "MD5值尚未计算或正在计算中",
 			"file_id": file.ID,
-			"status": "pending",
+			"status":  "pending",
 		})
 		return
 	}
@@ -86,6 +86,6 @@ func (h *MD5Handler) GetMD5(c *gin.Context) {
 	h.Success(c, gin.H{
 		"file_id": file.ID,
 		"md5":     file.MD5,
-		"status": "completed",
+		"status":  "completed",
 	})
 }

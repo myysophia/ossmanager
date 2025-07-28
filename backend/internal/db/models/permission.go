@@ -13,4 +13,4 @@ type Permission struct {
 // TableName 指定表名
 func (Permission) TableName() string {
 	return "permissions"
-} 
+}

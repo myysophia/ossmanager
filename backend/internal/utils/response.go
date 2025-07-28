@@ -29,6 +29,7 @@ const (
 	CodeConfigNotFound = 40404 // 配置不存在
 	CodeFileNotFound   = 40405 // 文件不存在
 	CodeConfigInUse    = 40001 // 配置正在使用中
+	CodeFileExists     = 40009 // 文件已存在
 )
 
 // 对应的消息
@@ -45,6 +46,7 @@ var codeMsgMap = map[int]string{
 	CodeConfigNotFound: "存储配置不存在",
 	CodeFileNotFound:   "文件不存在",
 	CodeConfigInUse:    "配置正在使用中",
+	CodeFileExists:     "文件已存在",
 }
 
 // ResponseWithJSON 返回JSON响应

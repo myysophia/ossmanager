@@ -238,10 +238,43 @@ func (h *OSSFileHandler) uploadStreamWithChunking(c *gin.Context, chunkThreshold
 		return
 	}
 
-	// 生成文件路径
-	ext := filepath.Ext(originalFilename)
+	// 检查是否强制覆盖
+	forceOverwrite := c.GetHeader("X-Force-Overwrite") == "true"
+
+	// 生成固定的文件路径
 	username, _ := c.Get("username")
-	objectKey := utils.GenerateObjectKey(username.(string), ext)
+
+	// 获取自定义路径
+	customPath := c.GetHeader("X-Custom-Path")
+	if customPath != "" {
+		// 清理和验证自定义路径
+		customPath = strings.Trim(customPath, "/")
+		// 验证路径中不包含危险字符
+		if strings.Contains(customPath, "..") || strings.ContainsAny(customPath, "\\<>:\"|?*") {
+			h.Error(c, utils.CodeInvalidParams, "自定义路径包含非法字符")
+			return
+		}
+		objectKey = utils.GenerateFixedObjectKeyWithPath(username.(string), customPath, originalFilename)
+	} else {
+		objectKey = utils.GenerateFixedObjectKey(username.(string), originalFilename)
+	}
+
+	// 如果不是强制覆盖，检查文件是否已存在
+	if !forceOverwrite {
+		var existingFile models.OSSFile
+		err := h.DB.Where("original_filename = ? AND bucket = ? AND status = ?",
+			originalFilename, bucketName, "ACTIVE").First(&existingFile).Error
+
+		if err == nil {
+			// 文件已存在，返回错误提示用户确认
+			h.Error(c, utils.CodeFileExists, "文件已存在，请确认是否要覆盖")
+			return
+		} else if err != gorm.ErrRecordNotFound {
+			// 数据库查询错误
+			h.Error(c, utils.CodeServerError, "检查文件是否存在失败")
+			return
+		}
+	}
 
 	// 获取任务ID
 	taskID := c.GetHeader("Upload-Task-ID")
@@ -1057,6 +1090,85 @@ func (h *OSSFileHandler) Delete(c *gin.Context) {
 		zap.String("bucket", file.Bucket))
 
 	h.Success(c, nil)
+}
+
+// CheckDuplicateFile 检查重复文件
+func (h *OSSFileHandler) CheckDuplicateFile(c *gin.Context) {
+	// 获取用户ID
+	userID := c.GetUint("userID")
+	username, _ := c.Get("username")
+
+	// 获取查询参数
+	originalFilename := c.Query("filename")
+	regionCode := c.Query("region_code")
+	bucketName := c.Query("bucket_name")
+
+	if originalFilename == "" {
+		h.Error(c, utils.CodeInvalidParams, "文件名不能为空")
+		return
+	}
+
+	if regionCode == "" || bucketName == "" {
+		h.Error(c, utils.CodeInvalidParams, "请指定 region_code 和 bucket_name")
+		return
+	}
+
+	// 检查用户是否有权限访问该桶
+	if !auth.CheckBucketAccess(h.DB, userID, regionCode, bucketName) {
+		h.Error(c, utils.CodeForbidden, "没有权限访问该存储桶")
+		return
+	}
+
+	// 获取自定义路径并生成对象键
+	customPath := c.Query("custom_path")
+	var objectKey string
+	if customPath != "" {
+		// 清理和验证自定义路径
+		customPath = strings.Trim(customPath, "/")
+		// 验证路径中不包含危险字符
+		if strings.Contains(customPath, "..") || strings.ContainsAny(customPath, "\\<>:\"|?*") {
+			h.Error(c, utils.CodeInvalidParams, "自定义路径包含非法字符")
+			return
+		}
+		objectKey = utils.GenerateFixedObjectKeyWithPath(username.(string), customPath, originalFilename)
+	} else {
+		objectKey = utils.GenerateFixedObjectKey(username.(string), originalFilename)
+	}
+
+	// 查询数据库中是否存在相同原始文件名的文件
+	var existingFile models.OSSFile
+	err := h.DB.Where("original_filename = ? AND bucket = ? AND status = ?",
+		originalFilename, bucketName, "ACTIVE").First(&existingFile).Error
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			// 文件不存在，可以上传
+			h.Success(c, gin.H{
+				"exists":     false,
+				"object_key": objectKey,
+				"message":    "文件不存在，可以上传",
+			})
+			return
+		}
+		// 数据库查询错误
+		h.Error(c, utils.CodeServerError, "查询文件失败")
+		return
+	}
+
+	// 文件已存在
+	h.Success(c, gin.H{
+		"exists":     true,
+		"object_key": objectKey,
+		"existing_file": gin.H{
+			"id":                existingFile.ID,
+			"filename":          existingFile.Filename,
+			"original_filename": existingFile.OriginalFilename,
+			"file_size":         existingFile.FileSize,
+			"created_at":        existingFile.CreatedAt,
+			"object_key":        existingFile.ObjectKey,
+		},
+		"message": "文件已存在，是否要覆盖？",
+	})
 }
 
 // GetDownloadURL 获取文件下载链接

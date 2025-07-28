@@ -22,3 +22,22 @@ func GenerateObjectKey(username, ext string) string {
 		ext,
 	)
 }
+
+// GenerateFixedObjectKey 生成固定的对象键名，基于用户名和原始文件名
+// originalFilename 是用户上传的原始文件名
+// username 是当前用户名
+func GenerateFixedObjectKey(username, originalFilename string) string {
+	// 生成格式为 用户名/原始文件名 的固定对象键
+	// 例如: alice/document.pdf
+	return fmt.Sprintf("%s/%s", username, originalFilename)
+}
+
+// GenerateFixedObjectKeyWithPath 生成包含自定义路径的固定对象键名
+// username 是当前用户名
+// customPath 是用户指定的自定义路径，已经过清理
+// originalFilename 是用户上传的原始文件名
+func GenerateFixedObjectKeyWithPath(username, customPath, originalFilename string) string {
+	// 生成格式为 用户名/自定义路径/原始文件名 的固定对象键
+	// 例如: alice/文档/图片/2024/document.pdf
+	return fmt.Sprintf("%s/%s/%s", username, customPath, originalFilename)
+}

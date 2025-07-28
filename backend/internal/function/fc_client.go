@@ -75,7 +75,7 @@ func (c *FCClient) InvokeMD5Calculation(bucketName, objectKey string, fileID uin
 	input := fc.NewInvokeFunctionInput(c.serviceName, c.functionName).
 		WithPayload(payloadBytes).
 		WithAsyncInvocation()
-	
+
 	_, err = c.client.InvokeFunction(input)
 	if err != nil {
 		return fmt.Errorf("调用函数计算服务失败: %w", err)
