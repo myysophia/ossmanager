@@ -266,15 +266,15 @@ func (h *OSSFileHandler) uploadStreamWithChunking(c *gin.Context, chunkThreshold
 		objectKey = originalFilename
 	}
 
-	// 如果不是强制覆盖，检查文件是否已存在
+	// 如果不是强制覆盖，检查文件是否已存在（基于完整路径）
 	if !forceOverwrite {
 		var existingFile models.OSSFile
-		err := h.DB.Where("original_filename = ? AND bucket = ? AND status = ?",
-			originalFilename, bucketName, "ACTIVE").First(&existingFile).Error
+		err := h.DB.Where("object_key = ? AND bucket = ? AND status = ?",
+			objectKey, bucketName, "ACTIVE").First(&existingFile).Error
 
 		if err == nil {
 			// 文件已存在，返回错误提示用户确认
-			h.Error(c, utils.CodeFileExists, "文件已存在，请确认是否要覆盖")
+			h.Error(c, utils.CodeFileExists, "在相同路径下文件已存在，请确认是否要覆盖")
 			return
 		} else if err != gorm.ErrRecordNotFound {
 			// 数据库查询错误
@@ -685,7 +685,29 @@ func (h *OSSFileHandler) saveFileRecord(c *gin.Context, config models.OSSConfig,
 	}
 	expiresAt := time.Now().Add(time.Duration(expireTime) * time.Second)
 
-	// 保存文件记录
+	// 开始数据库事务，确保原子性
+	tx := h.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// 1. 首先将相同object_key的旧记录标记为REPLACED
+	if err := tx.Model(&models.OSSFile{}).Where(
+		"object_key = ? AND bucket = ? AND status = ?",
+		objectKey, bucketName, "ACTIVE",
+	).Update("status", "REPLACED").Error; err != nil {
+		logger.Warn("标记旧文件记录失败", 
+			zap.String("object_key", objectKey),
+			zap.Error(err),
+		)
+		tx.Rollback()
+		h.Error(c, utils.CodeServerError, "更新旧文件记录失败")
+		return
+	}
+
+	// 2. 创建新的文件记录
 	ossFile := models.OSSFile{
 		ConfigID:         config.ID,
 		Filename:         objectKey,
@@ -701,10 +723,93 @@ func (h *OSSFileHandler) saveFileRecord(c *gin.Context, config models.OSSConfig,
 		Status:           "ACTIVE",
 	}
 
-	if err := h.DB.Create(&ossFile).Error; err != nil {
+	if err := tx.Create(&ossFile).Error; err != nil {
+		tx.Rollback()
 		h.Error(c, utils.CodeServerError, "保存文件记录失败")
 		return
 	}
+
+	// 提交事务
+	if err := tx.Commit().Error; err != nil {
+		h.Error(c, utils.CodeServerError, "提交事务失败")
+		return
+	}
+
+	logger.Info("文件记录保存成功",
+		zap.String("object_key", objectKey),
+		zap.Uint("file_id", ossFile.ID),
+		zap.String("status", "ACTIVE"),
+	)
+
+	h.Success(c, ossFile)
+}
+
+// saveFileRecordForMultipart 分片上传专用文件记录保存函数
+func (h *OSSFileHandler) saveFileRecordForMultipart(c *gin.Context, config models.OSSConfig, objectKey, originalFilename string, fileSize int64, bucketName, uploadURL string) {
+	// 从配置中获取过期时间，如果未配置则默认为24小时
+	expireTime := config.URLExpireTime
+	if expireTime <= 0 {
+		expireTime = 24 * 3600 // 默认24小时
+	}
+	expiresAt := time.Now().Add(time.Duration(expireTime) * time.Second)
+
+	// 开始数据库事务，确保原子性
+	tx := h.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// 1. 首先将相同object_key的旧记录标记为REPLACED
+	if err := tx.Model(&models.OSSFile{}).Where(
+		"object_key = ? AND bucket = ? AND status = ?",
+		objectKey, bucketName, "ACTIVE",
+	).Update("status", "REPLACED").Error; err != nil {
+		logger.Warn("标记旧文件记录失败", 
+			zap.String("object_key", objectKey),
+			zap.Error(err),
+		)
+		tx.Rollback()
+		h.Error(c, utils.CodeServerError, "更新旧文件记录失败")
+		return
+	}
+
+	// 2. 创建新的文件记录
+	ossFile := models.OSSFile{
+		ConfigID:         config.ID,
+		Filename:         objectKey,
+		OriginalFilename: originalFilename,
+		FileSize:         fileSize,
+		StorageType:      config.StorageType,
+		Bucket:           bucketName,
+		ObjectKey:        objectKey,
+		DownloadURL:      uploadURL,
+		UploaderID:       utils.GetUserID(c),
+		UploadIP:         c.ClientIP(),
+		ExpiresAt:        expiresAt,
+		Status:           "ACTIVE",
+	}
+
+	if err := tx.Create(&ossFile).Error; err != nil {
+		tx.Rollback()
+		h.Error(c, utils.CodeServerError, "保存文件记录失败")
+		return
+	}
+
+	// 提交事务
+	if err := tx.Commit().Error; err != nil {
+		h.Error(c, utils.CodeServerError, "提交事务失败")
+		return
+	}
+
+	logger.Info("分片上传文件记录保存成功",
+		zap.String("task_id", c.GetHeader("X-Task-ID")),
+		zap.Uint("file_id", ossFile.ID),
+		zap.String("object_key", objectKey),
+		zap.String("status", "ACTIVE"),
+		zap.String("download_url", uploadURL),
+	)
 
 	h.Success(c, ossFile)
 }
@@ -834,40 +939,13 @@ func (h *OSSFileHandler) CompleteMultipartUpload(c *gin.Context) {
 	}
 	expiresAt := time.Now().Add(time.Duration(expireTime) * time.Second)
 
-	// 保存文件记录
-	ossFile := models.OSSFile{
-		ConfigID:         config.ID,
-		Filename:         req.ObjectKey,
-		OriginalFilename: originalFilename,
-		FileSize:         req.FileSize,
-		StorageType:      config.StorageType,
-		Bucket:           req.BucketName,
-		ObjectKey:        req.ObjectKey,
-		DownloadURL:      url,
-		UploaderID:       utils.GetUserID(c),
-		UploadIP:         c.ClientIP(),
-		ExpiresAt:        expiresAt,
-		Status:           "ACTIVE",
-	}
-
-	if err := h.DB.Create(&ossFile).Error; err != nil {
-		logger.Error("保存文件记录失败", zap.Error(err))
-		h.Error(c, utils.CodeServerError, "保存文件记录失败")
-		return
-	}
+	// 使用改进的文件记录保存逻辑
+	h.saveFileRecordForMultipart(c, config, req.ObjectKey, originalFilename, req.FileSize, req.BucketName, url)
 
 	// 完成进度追踪
 	if req.TaskID != "" {
 		upload.DefaultManager.Finish(req.TaskID)
 	}
-
-	logger.Info("分片上传完全完成",
-		zap.String("task_id", req.TaskID),
-		zap.Uint("file_id", ossFile.ID),
-		zap.String("download_url", url),
-	)
-
-	h.Success(c, ossFile)
 }
 
 // AbortMultipartUpload 取消分片上传
@@ -1142,10 +1220,10 @@ func (h *OSSFileHandler) CheckDuplicateFile(c *gin.Context) {
 		objectKey = utils.GenerateFixedObjectKey(username.(string), originalFilename)
 	}
 
-	// 查询数据库中是否存在相同原始文件名的文件
+	// 查询数据库中是否存在相同对象键（完整路径）的文件
 	var existingFile models.OSSFile
-	err := h.DB.Where("original_filename = ? AND bucket = ? AND status = ?",
-		originalFilename, bucketName, "ACTIVE").First(&existingFile).Error
+	err := h.DB.Where("object_key = ? AND bucket = ? AND status = ?",
+		objectKey, bucketName, "ACTIVE").First(&existingFile).Error
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -1162,7 +1240,16 @@ func (h *OSSFileHandler) CheckDuplicateFile(c *gin.Context) {
 		return
 	}
 
-	// 文件已存在
+	// 文件已存在，提取路径信息
+	existingPath := ""
+	if strings.Contains(existingFile.ObjectKey, "/") {
+		// 提取路径部分（去掉文件名）
+		parts := strings.Split(existingFile.ObjectKey, "/")
+		if len(parts) > 1 {
+			existingPath = strings.Join(parts[:len(parts)-1], "/")
+		}
+	}
+	
 	h.Success(c, gin.H{
 		"exists":     true,
 		"object_key": objectKey,
@@ -1173,8 +1260,9 @@ func (h *OSSFileHandler) CheckDuplicateFile(c *gin.Context) {
 			"file_size":         existingFile.FileSize,
 			"created_at":        existingFile.CreatedAt,
 			"object_key":        existingFile.ObjectKey,
+			"path":              existingPath,
 		},
-		"message": "文件已存在，是否要覆盖？",
+		"message": "在相同路径下发现同名文件，是否要覆盖？",
 	})
 }
 
