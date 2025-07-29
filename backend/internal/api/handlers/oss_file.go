@@ -132,10 +132,52 @@ func (h *OSSFileHandler) uploadFormFileWithChunking(c *gin.Context, chunkThresho
 		return
 	}
 
-	// 生成文件路径
-	ext := filepath.Ext(file.Filename)
-	username, _ := c.Get("username")
-	objectKey := utils.GenerateObjectKey(username.(string), ext)
+	// 检查是否强制覆盖
+	forceOverwrite := c.GetHeader("X-Force-Overwrite") == "true"
+
+	// 声明 objectKey 变量
+	var objectKey string
+
+	// 获取自定义路径
+	customPath := c.GetHeader("X-Custom-Path")
+	if customPath != "" {
+		// 清理和验证自定义路径
+		customPath = strings.Trim(customPath, "/")
+		// 验证路径中不包含危险字符
+		if strings.Contains(customPath, "..") || strings.ContainsAny(customPath, "\\<>:\"|?*") {
+			h.Error(c, utils.CodeInvalidParams, "自定义路径包含非法字符")
+			return
+		}
+		// 使用用户自定义路径
+		if customPath == "" {
+			// 自定义路径为空，直接上传到根目录
+			objectKey = file.Filename
+		} else {
+			objectKey = customPath + "/" + file.Filename
+		}
+	} else {
+		// 没有提供自定义路径，生成标准路径
+		ext := filepath.Ext(file.Filename)
+		username, _ := c.Get("username")
+		objectKey = utils.GenerateObjectKey(username.(string), ext)
+	}
+
+	// 如果不是强制覆盖，检查文件是否已存在（基于完整路径）
+	if !forceOverwrite {
+		var existingFile models.OSSFile
+		err := h.DB.Where("object_key = ? AND bucket = ? AND status = ?",
+			objectKey, bucketName, "ACTIVE").First(&existingFile).Error
+
+		if err == nil {
+			// 文件已存在，返回错误提示用户确认
+			h.Error(c, utils.CodeFileExists, "在相同路径下文件已存在，请确认是否要覆盖")
+			return
+		} else if err != gorm.ErrRecordNotFound {
+			// 数据库查询错误
+			h.Error(c, utils.CodeServerError, "检查文件是否存在失败")
+			return
+		}
+	}
 
 	// 如果客户端提供了上传任务ID，则使用该ID；否则生成新的
 	taskID := c.GetHeader("Upload-Task-ID")
@@ -767,10 +809,7 @@ func (h *OSSFileHandler) saveFileRecordForMultipart(c *gin.Context, config model
 		objectKey, bucketName, "ACTIVE",
 	).Update("status", "REPLACED").Error; err != nil {
 <<<<<<< HEAD
-		logger.Warn("标记旧文件记录失败", 
-=======
 		logger.Warn("标记旧文件记录失败",
->>>>>>> 257929f969586b04b558777d2fd3b11f42ba96cd
 			zap.String("object_key", objectKey),
 			zap.Error(err),
 		)
@@ -941,7 +980,6 @@ func (h *OSSFileHandler) CompleteMultipartUpload(c *gin.Context) {
 	if expireTime <= 0 {
 		expireTime = 24 * 3600 // 默认24小时
 	}
-	//expiresAt := time.Now().Add(time.Duration(expireTime) * time.Second)
 
 	// 使用改进的文件记录保存逻辑
 	h.saveFileRecordForMultipart(c, config, req.ObjectKey, originalFilename, req.FileSize, req.BucketName, url)
@@ -1253,11 +1291,7 @@ func (h *OSSFileHandler) CheckDuplicateFile(c *gin.Context) {
 			existingPath = strings.Join(parts[:len(parts)-1], "/")
 		}
 	}
-<<<<<<< HEAD
-	
-=======
 
->>>>>>> 257929f969586b04b558777d2fd3b11f42ba96cd
 	h.Success(c, gin.H{
 		"exists":     true,
 		"object_key": objectKey,
@@ -1289,11 +1323,7 @@ func (h *OSSFileHandler) GetDownloadURL(c *gin.Context) {
 	expireHoursStr := c.Query("expire_hours")
 	var expireDuration time.Duration
 	var neverExpires bool = false
-<<<<<<< HEAD
-	
-=======
 
->>>>>>> 257929f969586b04b558777d2fd3b11f42ba96cd
 	if expireHoursStr != "" {
 		if expireHours, err := strconv.Atoi(expireHoursStr); err == nil {
 			switch expireHours {
@@ -1349,11 +1379,7 @@ func (h *OSSFileHandler) GetDownloadURL(c *gin.Context) {
 	// 动态生成下载链接
 	var downloadURL string
 	var expires time.Time
-<<<<<<< HEAD
-	
-=======
 
->>>>>>> 257929f969586b04b558777d2fd3b11f42ba96cd
 	if neverExpires {
 		// 永不过期：返回文件的原始下载链接（如果是公共访问的桶）或者使用一个很长的过期时间
 		if aliyunStorage, ok := storage.(*oss.AliyunOSSService); ok {
