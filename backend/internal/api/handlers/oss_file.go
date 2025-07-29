@@ -156,10 +156,9 @@ func (h *OSSFileHandler) uploadFormFileWithChunking(c *gin.Context, chunkThresho
 			objectKey = customPath + "/" + file.Filename
 		}
 	} else {
-		// 没有提供自定义路径，生成标准路径
-		ext := filepath.Ext(file.Filename)
+		// 没有提供自定义路径，使用固定路径生成方式
 		username, _ := c.Get("username")
-		objectKey = utils.GenerateObjectKey(username.(string), ext)
+		objectKey = utils.GenerateFixedObjectKey(username.(string), file.Filename)
 	}
 
 	// 如果不是强制覆盖，检查文件是否已存在（基于完整路径）
@@ -304,8 +303,9 @@ func (h *OSSFileHandler) uploadStreamWithChunking(c *gin.Context, chunkThreshold
 			objectKey = customPath + "/" + originalFilename
 		}
 	} else {
-		// 没有提供自定义路径，直接上传到根目录
-		objectKey = originalFilename
+		// 没有提供自定义路径，使用固定路径生成方式
+		username, _ := c.Get("username")
+		objectKey = utils.GenerateFixedObjectKey(username.(string), originalFilename)
 	}
 
 	// 如果不是强制覆盖，检查文件是否已存在（基于完整路径）
@@ -1256,8 +1256,15 @@ func (h *OSSFileHandler) CheckDuplicateFile(c *gin.Context) {
 			h.Error(c, utils.CodeInvalidParams, "自定义路径包含非法字符")
 			return
 		}
-		objectKey = utils.GenerateFixedObjectKeyWithPath(username.(string), customPath, originalFilename)
+		// 使用用户自定义路径
+		if customPath == "" {
+			// 自定义路径为空，直接上传到根目录
+			objectKey = originalFilename
+		} else {
+			objectKey = customPath + "/" + originalFilename
+		}
 	} else {
+		// 没有提供自定义路径，使用固定路径生成方式。但为了兼容性，也支持检查绝对路径
 		objectKey = utils.GenerateFixedObjectKey(username.(string), originalFilename)
 	}
 
