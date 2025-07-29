@@ -808,7 +808,6 @@ func (h *OSSFileHandler) saveFileRecordForMultipart(c *gin.Context, config model
 		"object_key = ? AND bucket = ? AND status = ?",
 		objectKey, bucketName, "ACTIVE",
 	).Update("status", "REPLACED").Error; err != nil {
-<<<<<<< HEAD
 		logger.Warn("标记旧文件记录失败",
 			zap.String("object_key", objectKey),
 			zap.Error(err),
@@ -1425,26 +1424,13 @@ func (h *OSSFileHandler) GetDownloadURL(c *gin.Context) {
 		zap.Time("expires", expires))
 
 	response := gin.H{
-<<<<<<< HEAD
 		"download_url": downloadURL,
 		"never_expires": neverExpires,
 	}
-	
-=======
-		"download_url":  downloadURL,
-		"never_expires": neverExpires,
-	}
-
->>>>>>> 257929f969586b04b558777d2fd3b11f42ba96cd
 	if !neverExpires {
 		response["expires"] = expires
 		response["expire_hours"] = int(expireDuration.Hours())
 	}
-<<<<<<< HEAD
-	
-=======
-
->>>>>>> 257929f969586b04b558777d2fd3b11f42ba96cd
 	h.Success(c, response)
 }
 
