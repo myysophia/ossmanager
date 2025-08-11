@@ -11,8 +11,8 @@ import (
 	"golang.org/x/net/webdav"
 	"gorm.io/gorm"
 
-	"github.com/myysophia/ossmanager-backend/internal/models"
-	"github.com/myysophia/ossmanager-backend/internal/oss"
+	"github.com/myysophia/ossmanager/internal/models"
+	"github.com/myysophia/ossmanager/internal/oss"
 )
 
 // 临时类型别名，避免编译错误

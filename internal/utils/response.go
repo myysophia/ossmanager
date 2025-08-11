@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/myysophia/ossmanager-backend/internal/logger"
+	"github.com/myysophia/ossmanager/internal/logger"
 	"go.uber.org/zap"
 )
 

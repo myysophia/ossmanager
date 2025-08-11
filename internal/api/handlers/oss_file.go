@@ -14,15 +14,15 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/myysophia/ossmanager-backend/internal/auth"
-	"github.com/myysophia/ossmanager-backend/internal/logger"
+	"github.com/myysophia/ossmanager/internal/auth"
+	"github.com/myysophia/ossmanager/internal/logger"
 
 	"github.com/gin-gonic/gin"
-	"github.com/myysophia/ossmanager-backend/internal/config"
-	"github.com/myysophia/ossmanager-backend/internal/db/models"
-	"github.com/myysophia/ossmanager-backend/internal/oss"
-	"github.com/myysophia/ossmanager-backend/internal/upload"
-	"github.com/myysophia/ossmanager-backend/internal/utils"
+	"github.com/myysophia/ossmanager/internal/config"
+	"github.com/myysophia/ossmanager/internal/db/models"
+	"github.com/myysophia/ossmanager/internal/oss"
+	"github.com/myysophia/ossmanager/internal/upload"
+	"github.com/myysophia/ossmanager/internal/utils"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )

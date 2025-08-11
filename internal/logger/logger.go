@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"github.com/myysophia/ossmanager-backend/internal/config"
+	"github.com/myysophia/ossmanager/internal/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"os"

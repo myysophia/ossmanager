@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/myysophia/ossmanager-backend/internal/upload"
+	"github.com/myysophia/ossmanager/internal/upload"
 )
 
 // UploadProgressHandler 处理上传进度查询和SSE

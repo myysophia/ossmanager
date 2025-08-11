@@ -26,7 +26,7 @@ RUN mkdir -p /app/web/build && \
     cp -r public/* /app/web/build/ 2>/dev/null || true
 
 # 阶段2：构建后端
-FROM golang:1.21-alpine AS backend-builder
+FROM golang:1.23-alpine AS backend-builder
 
 # 安装必要的系统依赖
 RUN apk add --no-cache gcc musl-dev git

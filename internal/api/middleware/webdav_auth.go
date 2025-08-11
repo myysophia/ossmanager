@@ -9,8 +9,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
-	"github.com/myysophia/ossmanager-backend/internal/auth"
-	"github.com/myysophia/ossmanager-backend/internal/models"
+	"github.com/myysophia/ossmanager/internal/auth"
+	"github.com/myysophia/ossmanager/internal/models"
 )
 
 // WebDAVAuthMiddleware WebDAV 认证中间件，支持 Basic Auth 和 Bearer Token

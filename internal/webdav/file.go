@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/myysophia/ossmanager-backend/internal/models"
+	"github.com/myysophia/ossmanager/internal/models"
 )
 
 // OSSFile 实现 WebDAV File 接口

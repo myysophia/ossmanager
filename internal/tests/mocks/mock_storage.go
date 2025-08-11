@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
-	"github.com/myysophia/ossmanager-backend/internal/oss"
+	"github.com/myysophia/ossmanager/internal/oss"
 )
 
 // MockStorageService 模拟存储服务

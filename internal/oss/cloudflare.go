@@ -12,8 +12,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
-	"github.com/myysophia/ossmanager-backend/internal/config"
-	"github.com/myysophia/ossmanager-backend/internal/logger"
+	"github.com/myysophia/ossmanager/internal/config"
+	"github.com/myysophia/ossmanager/internal/logger"
 	"go.uber.org/zap"
 )
 

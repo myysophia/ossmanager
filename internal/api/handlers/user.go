@@ -4,10 +4,10 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/myysophia/ossmanager-backend/internal/db"
-	"github.com/myysophia/ossmanager-backend/internal/db/models"
-	"github.com/myysophia/ossmanager-backend/internal/logger"
-	"github.com/myysophia/ossmanager-backend/internal/utils"
+	"github.com/myysophia/ossmanager/internal/db"
+	"github.com/myysophia/ossmanager/internal/db/models"
+	"github.com/myysophia/ossmanager/internal/logger"
+	"github.com/myysophia/ossmanager/internal/utils"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )

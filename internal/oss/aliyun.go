@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
-	"github.com/myysophia/ossmanager-backend/internal/config"
-	"github.com/myysophia/ossmanager-backend/internal/logger"
+	"github.com/myysophia/ossmanager/internal/config"
+	"github.com/myysophia/ossmanager/internal/logger"
 	"go.uber.org/zap"
 )
 

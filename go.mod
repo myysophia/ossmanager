@@ -1,6 +1,6 @@
-module github.com/myysophia/ossmanager-backend
+module github.com/myysophia/ossmanager
 
-go 1.24.1
+go 1.24
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
@@ -17,7 +17,6 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.6.0
-	github.com/lib/pq v1.10.9
 	github.com/spf13/viper v1.20.0
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.27.0

@@ -2,10 +2,10 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/myysophia/ossmanager-backend/internal/api/handlers"
-	"github.com/myysophia/ossmanager-backend/internal/api/middleware"
-	"github.com/myysophia/ossmanager-backend/internal/function"
-	"github.com/myysophia/ossmanager-backend/internal/oss"
+	"github.com/myysophia/ossmanager/internal/api/handlers"
+	"github.com/myysophia/ossmanager/internal/api/middleware"
+	"github.com/myysophia/ossmanager/internal/function"
+	"github.com/myysophia/ossmanager/internal/oss"
 	"gorm.io/gorm"
 )
 

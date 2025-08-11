@@ -7,8 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
-	"github.com/myysophia/ossmanager-backend/internal/db/models"
-	"github.com/myysophia/ossmanager-backend/internal/tests/mocks"
+	"github.com/myysophia/ossmanager/internal/db/models"
+	"github.com/myysophia/ossmanager/internal/tests/mocks"
 	"github.com/stretchr/testify/assert"
 )
 

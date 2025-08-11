@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/myysophia/ossmanager-backend/internal/auth"
-	"github.com/myysophia/ossmanager-backend/internal/config"
-	"github.com/myysophia/ossmanager-backend/internal/logger"
-	"github.com/myysophia/ossmanager-backend/internal/utils"
+	"github.com/myysophia/ossmanager/internal/auth"
+	"github.com/myysophia/ossmanager/internal/config"
+	"github.com/myysophia/ossmanager/internal/logger"
+	"github.com/myysophia/ossmanager/internal/utils"
 	"go.uber.org/zap"
 )
 

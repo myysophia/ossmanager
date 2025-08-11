@@ -50,8 +50,8 @@ import (
     "golang.org/x/net/webdav"
     "gorm.io/gorm"
     
-    "github.com/myysophia/ossmanager-backend/internal/oss"
-    "github.com/myysophia/ossmanager-backend/internal/models"
+    "github.com/myysophia/ossmanager/internal/oss"
+    "github.com/myysophia/ossmanager/internal/models"
 )
 
 // OSSFileSystem 实现 WebDAV FileSystem 接口
@@ -403,9 +403,9 @@ import (
     "golang.org/x/net/webdav"
     "gorm.io/gorm"
 
-    "github.com/myysophia/ossmanager-backend/internal/auth"
-    "github.com/myysophia/ossmanager-backend/internal/oss"
-    webdavfs "github.com/myysophia/ossmanager-backend/internal/webdav"
+    "github.com/myysophia/ossmanager/internal/auth"
+    "github.com/myysophia/ossmanager/internal/oss"
+    webdavfs "github.com/myysophia/ossmanager/internal/webdav"
 )
 
 type WebDAVHandler struct {
@@ -507,7 +507,7 @@ import (
 
     "github.com/gin-gonic/gin"
     
-    "github.com/myysophia/ossmanager-backend/internal/auth"
+    "github.com/myysophia/ossmanager/internal/auth"
 )
 
 // WebDAVAuthMiddleware WebDAV 认证中间件，支持 Basic Auth 和 Bearer Token

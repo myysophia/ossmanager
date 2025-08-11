@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/myysophia/ossmanager-backend/internal/db"
-	"github.com/myysophia/ossmanager-backend/internal/db/models"
-	"github.com/myysophia/ossmanager-backend/internal/function"
-	"github.com/myysophia/ossmanager-backend/internal/logger"
+	"github.com/myysophia/ossmanager/internal/db"
+	"github.com/myysophia/ossmanager/internal/db/models"
+	"github.com/myysophia/ossmanager/internal/function"
+	"github.com/myysophia/ossmanager/internal/logger"
 	"go.uber.org/zap"
 	"strconv"
 )

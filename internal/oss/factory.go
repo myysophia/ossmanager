@@ -2,10 +2,10 @@ package oss
 
 import (
 	"fmt"
-	"github.com/myysophia/ossmanager-backend/internal/config"
-	"github.com/myysophia/ossmanager-backend/internal/db"
-	"github.com/myysophia/ossmanager-backend/internal/db/models"
-	"github.com/myysophia/ossmanager-backend/internal/logger"
+	"github.com/myysophia/ossmanager/internal/config"
+	"github.com/myysophia/ossmanager/internal/db"
+	"github.com/myysophia/ossmanager/internal/db/models"
+	"github.com/myysophia/ossmanager/internal/logger"
 	"go.uber.org/zap"
 	"sync"
 )

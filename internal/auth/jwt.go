@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/myysophia/ossmanager-backend/internal/config"
-	"github.com/myysophia/ossmanager-backend/internal/db/models"
+	"github.com/myysophia/ossmanager/internal/config"
+	"github.com/myysophia/ossmanager/internal/db/models"
 	"time"
 )
 

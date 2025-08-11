@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
-	"github.com/myysophia/ossmanager-backend/internal/oss"
+	"github.com/myysophia/ossmanager/internal/oss"
 )
 
 // WebDAVHandler stub implementation when WebDAV is disabled

@@ -11,9 +11,9 @@ import (
 	"golang.org/x/net/webdav"
 	"gorm.io/gorm"
 
-	"github.com/myysophia/ossmanager-backend/internal/auth"
-	"github.com/myysophia/ossmanager-backend/internal/oss"
-	webdavfs "github.com/myysophia/ossmanager-backend/internal/webdav"
+	"github.com/myysophia/ossmanager/internal/auth"
+	"github.com/myysophia/ossmanager/internal/oss"
+	webdavfs "github.com/myysophia/ossmanager/internal/webdav"
 )
 
 type WebDAVHandler struct {

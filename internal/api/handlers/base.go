@@ -3,7 +3,7 @@ package handlers
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/myysophia/ossmanager-backend/internal/utils"
+	"github.com/myysophia/ossmanager/internal/utils"
 )
 
 // BaseHandler 基础处理器
