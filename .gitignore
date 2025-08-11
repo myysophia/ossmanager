@@ -1,0 +1,315 @@
+# OSS Manager - Go + Next.js Monolith Application
+# .gitignore
+
+# ===========================================
+# Go 相关忽略文件
+# ===========================================
+
+# Go 二进制文件
+ossmanager
+ossmanager-*
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go 测试文件
+*.test
+
+# Go 覆盖率文件
+*.out
+
+# Go 工作区文件
+go.work
+go.work.sum
+
+# Go 模块缓存
+/go/pkg/mod/
+
+# Go 构建缓存
+/.cache/go-build/
+
+# Delve 调试器
+__debug_bin*
+
+# ===========================================
+# Node.js / Frontend 相关忽略文件
+# ===========================================
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Production builds
+/frontend/.next/
+/frontend/out/
+/frontend/build/
+/frontend/dist/
+
+# Cache directories
+.npm
+.eslintcache
+.parcel-cache
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ===========================================
+# 嵌入静态文件目录
+# ===========================================
+
+# 嵌入到Go二进制的前端构建产物
+/web/build/
+/web/dist/
+
+# 临时构建目录
+/build/
+/dist/
+
+# ===========================================
+# 数据库文件
+# ===========================================
+
+# SQLite 数据库
+*.db
+*.sqlite
+*.sqlite3
+data.db
+dev.db
+test.db
+
+# 数据库备份文件
+*.sql.bak
+*.db.bak
+
+# ===========================================
+# 日志文件
+# ===========================================
+
+# 应用日志
+*.log
+logs/
+/logs/*
+
+# 系统日志
+*.log.*
+*.log.*.gz
+
+# ===========================================
+# 配置和密钥文件
+# ===========================================
+
+# 敏感配置文件
+config.local.yaml
+config.prod.yaml
+.env.production
+secrets.yaml
+
+# SSL 证书
+*.pem
+*.key
+*.crt
+*.cert
+
+# JWT 密钥
+jwt.key
+*.jwt
+
+# ===========================================
+# 上传和存储文件
+# ===========================================
+
+# 用户上传的文件
+/uploads/
+/storage/
+/data/files/
+/tmp/uploads/
+
+# 临时文件
+*.tmp
+*.temp
+/tmp/
+
+# ===========================================
+# IDE 和编辑器文件
+# ===========================================
+
+# GoLand / IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Visual Studio Code
+.vscode/
+.history/
+
+# Vim
+*.swp
+*.swo
+*.un~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ===========================================
+# 系统文件
+# ===========================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ===========================================
+# Docker 相关
+# ===========================================
+
+# Docker 镜像构建上下文中不需要的文件
+docker-compose.override.yml
+.dockerignore
+
+# ===========================================
+# 测试和覆盖率
+# ===========================================
+
+# Go 测试覆盖率
+coverage.txt
+coverage.html
+coverage.out
+
+# Node.js 测试覆盖率
+/frontend/coverage/
+/coverage/
+/.nyc_output
+
+# Jest 缓存
+/frontend/.jest/
+
+# Cypress 测试
+/cypress/videos/
+/cypress/screenshots/
+/cypress/downloads/
+
+# ===========================================
+# 部署和CI/CD
+# ===========================================
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Kubernetes
+*.kubeconfig
+kustomization.yaml.bak
+
+# CI/CD 密钥和配置
+.secrets/
+deploy.env
+
+# ===========================================
+# 开发工具
+# ===========================================
+
+# Air (Go hot reload)
+.air.toml
+tmp/
+
+# 性能分析文件
+*.prof
+*.pprof
+*.trace
+
+# Benchmark 结果
+*.bench
+
+# 内存转储
+*.memprof
+*.mprof
+
+# ===========================================
+# 文档生成
+# ===========================================
+
+# 自动生成的API文档
+/docs/api/
+/swagger-ui/
+
+# ===========================================
+# 备份和临时文件
+# ===========================================
+
+# 备份文件
+*.bak
+*.backup
+*.old
+*.orig
+
+# 补丁文件
+*.patch
+*.diff
+
+# 压缩文件 (除非是发布包)
+*.zip
+*.tar.gz
+*.tar.bz2
+*.rar
+*.7z
+
+configs/*

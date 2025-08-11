@@ -11,34 +11,9 @@ const nextConfig: NextConfig = {
   // 减少运行时代码
   poweredByHeader: false,
   
-  // 图片配置
+  // 图片配置 - 静态导出模式下禁用优化
   images: {
-    domains: ['localhost'],
-  },
-
-  // API 重写规则
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL}/api/:path*`,
-      },
-    ];
-  },
-
-  // 允许跨域请求
-  async headers() {
-    return [
-      {
-        // 匹配所有API路由
-        source: '/api/:path*',
-        headers: [
-          { key: 'Access-Control-Allow-Origin', value: '*' },
-          { key: 'Access-Control-Allow-Methods', value: 'GET,POST,PUT,DELETE,OPTIONS' },
-          { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization' },
-        ],
-      },
-    ];
+    unoptimized: true,
   },
   
   // 自定义webpack配置
@@ -82,8 +57,10 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
 
-  // 启用 standalone 输出，用于 Docker 部署
-  output: 'standalone',
+  // 启用静态导出，用于单体应用
+  output: 'export',
+  trailingSlash: true,
+  skipTrailingSlashRedirect: true,
 };
 
 export default nextConfig;
