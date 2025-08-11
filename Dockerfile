@@ -26,25 +26,25 @@ RUN mkdir -p /app/web/build && \
     cp -r public/* /app/web/build/ 2>/dev/null || true
 
 # 阶段2：构建后端
-FROM golang:1.24-alpine AS backend-builder
+FROM golang:1.21-alpine AS backend-builder
 
 # 安装必要的系统依赖
 RUN apk add --no-cache gcc musl-dev git
 
 WORKDIR /app
 
-# 复制后端go mod文件
-COPY backend/go.mod backend/go.sum ./
+# 复制go mod文件
+COPY go.mod go.sum ./
 RUN go mod download
 
-# 复制后端源码
-COPY backend/ ./
+# 复制源码
+COPY . ./
 
 # 复制前端构建产物
 COPY --from=frontend-builder /app/web/ ./web/
 
-# 构建后端应用
-RUN CGO_ENABLED=1 GOOS=linux go build -a -ldflags '-w -s' -o ossmanager ./cmd/server
+# 构建应用
+RUN CGO_ENABLED=1 GOOS=linux go build -a -ldflags '-w -s' -o ossmanager .
 
 # 阶段3：运行阶段
 FROM alpine:latest

@@ -1,0 +1,47 @@
+# Git
+.git
+.gitignore
+.github
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs
+ossmanager
+ossmanager-*
+*.exe
+dist/
+build/
+
+# Logs
+logs/
+*.log
+
+# Node.js (frontend dependencies will be handled separately)
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/dist/
+
+# Go
+*.test
+*.prof
+coverage.txt
+
+# Documentation
+docs/
+README.md
+*.md
+
+# Other
+.env
+.env.*
+tmp/
+temp/
