@@ -81,7 +81,7 @@ func (h *RegionBucketHandler) GetUserAccessibleBuckets(c *gin.Context) {
 		return
 	}
 
-	h.Success(c, buckets)
+	utils.SuccessResponse(c, "操作成功", buckets)
 }
 
 // List 获取地域-桶映射列表

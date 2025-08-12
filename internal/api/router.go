@@ -4,13 +4,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/myysophia/ossmanager/internal/api/handlers"
 	"github.com/myysophia/ossmanager/internal/api/middleware"
+	"github.com/myysophia/ossmanager/internal/config"
 	"github.com/myysophia/ossmanager/internal/function"
 	"github.com/myysophia/ossmanager/internal/oss"
 	"gorm.io/gorm"
 )
 
 // SetupRouter 设置路由
-func SetupRouter(storageFactory oss.StorageFactory, md5Calculator *function.MD5Calculator, db *gorm.DB) *gin.Engine {
+func SetupRouter(storageFactory oss.StorageFactory, md5Calculator *function.MD5Calculator, db *gorm.DB, cfg *config.Config) *gin.Engine {
 	// 创建Gin实例
 	router := gin.New()
 
@@ -33,10 +34,12 @@ func SetupRouter(storageFactory oss.StorageFactory, md5Calculator *function.MD5C
 	permissionHandler := handlers.NewPermissionHandler(db)     // 权限管理处理器
 	regionBucketHandler := handlers.NewRegionBucketHandler(db) // 区域存储桶处理器
 	uploadProgressHandler := handlers.NewUploadProgressHandler()
-	// webdavHandler := handlers.NewWebDAVHandler(storageFactory, db) // WebDAV 处理器 - 暂时禁用
+	// WebDAV 处理器
+	// webdavHandler := handlers.NewWebDAVHandler(storageFactory, db) // 在需要时启用
+	webdavTokenHandler := handlers.NewWebDAVTokenHandler(db) // WebDAV Token 处理器
 
 	// 公开路由
-	public := router.Group("/api/v1")
+	public := router.Group("/v1")
 	{
 		// 认证相关
 		public.POST("/auth/login", authHandler.Login)
@@ -57,7 +60,7 @@ func SetupRouter(storageFactory oss.StorageFactory, md5Calculator *function.MD5C
 	}
 
 	// 需要认证的路由
-	authorized := router.Group("/api/v1")
+	authorized := router.Group("/v1")
 	authorized.Use(
 		middleware.AuthMiddleware(),     // 认证中间件
 		middleware.AuditLogMiddleware(), // 审计日志中间件
@@ -165,17 +168,28 @@ func SetupRouter(storageFactory oss.StorageFactory, md5Calculator *function.MD5C
 			roleBucketAccess.DELETE("/:id", roleHandler.DeleteRoleBucketAccess)
 		}
 
+		// WebDAV Token 管理
+		webdavTokens := authorized.Group("/webdav/token")
+		{
+			webdavTokens.POST("", webdavTokenHandler.Create)                      // 生成 Token
+			webdavTokens.GET("", webdavTokenHandler.List)                        // 列出 Token
+			webdavTokens.DELETE("/:id", webdavTokenHandler.Delete)               // 撤销 Token
+			webdavTokens.GET("/connection-info/:bucket", webdavTokenHandler.GetConnectionInfo) // 获取连接信息
+			webdavTokens.GET("/test/:bucket", webdavTokenHandler.TestConnection) // 测试连接
+		}
+
 	}
 
-	// WebDAV 支持 - 暂时禁用，避免编译错误
-	/*
-	webdavGroup := router.Group("/webdav")
-	webdavGroup.Use(middleware.WebDAVAuthMiddleware(db))
-	{
-		// 处理所有 WebDAV 请求
-		webdavGroup.Any("/*bucket", webdavHandler.ServeHTTP)
+	// WebDAV 支持
+	if cfg != nil {
+		webdavHandler := handlers.NewWebDAVHandler(storageFactory, db)
+		webdavGroup := router.Group("/webdav")
+		webdavGroup.Use(middleware.WebDAVAuthMiddleware(db, &cfg.JWT))
+		{
+			// 处理所有 WebDAV 请求
+			webdavGroup.Any("/*bucket", webdavHandler.ServeHTTP)
+		}
 	}
-	*/
 
 	return router
 }

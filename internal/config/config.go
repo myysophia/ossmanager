@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/spf13/viper"
@@ -186,6 +187,18 @@ func LoadConfigWithEnv(configPath string, env string) (*Config, error) {
 	fmt.Printf("使用配置文件: %s\n", configFile)
 
 	v.AutomaticEnv()
+	v.SetEnvPrefix("")
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
+	// 设置环境变量绑定
+	v.BindEnv("app.port", "APP_PORT")
+	v.BindEnv("database.host", "DB_HOST")
+	v.BindEnv("database.port", "DB_PORT")
+	v.BindEnv("database.username", "DB_USERNAME")
+	v.BindEnv("database.password", "DB_PASSWORD")
+	v.BindEnv("database.dbname", "DB_NAME")
+	v.BindEnv("database.sslmode", "DB_SSLMODE")
+	v.BindEnv("jwt.secret_key", "JWT_SECRET_KEY")
 
 	// 读取基本配置
 	if err := v.ReadInConfig(); err != nil {
@@ -229,6 +242,33 @@ func LoadConfigWithEnv(configPath string, env string) (*Config, error) {
 	if fileExists(ossConfigFile) {
 		ossViper := viper.New()
 		ossViper.SetConfigFile(ossConfigFile)
+		
+		// 为OSS配置添加自动环境变量支持
+		ossViper.AutomaticEnv()
+		ossViper.SetEnvPrefix("")
+		ossViper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+		
+		// 绑定OSS相关的环境变量
+		ossViper.BindEnv("aliyun_oss.access_key_id", "ALIYUN_ACCESS_KEY_ID")
+		ossViper.BindEnv("aliyun_oss.access_key_secret", "ALIYUN_ACCESS_KEY_SECRET")
+		ossViper.BindEnv("aliyun_oss.endpoint", "ALIYUN_OSS_ENDPOINT")
+		ossViper.BindEnv("aliyun_oss.bucket", "ALIYUN_OSS_BUCKET")
+		ossViper.BindEnv("aliyun_oss.region", "ALIYUN_OSS_REGION")
+		ossViper.BindEnv("aliyun_oss.upload_dir", "ALIYUN_OSS_UPLOAD_DIR")
+		
+		// AWS S3
+		ossViper.BindEnv("aws_s3.access_key_id", "AWS_ACCESS_KEY_ID")
+		ossViper.BindEnv("aws_s3.secret_access_key", "AWS_SECRET_ACCESS_KEY")
+		ossViper.BindEnv("aws_s3.region", "AWS_REGION")
+		ossViper.BindEnv("aws_s3.bucket", "AWS_S3_BUCKET")
+		ossViper.BindEnv("aws_s3.upload_dir", "AWS_S3_UPLOAD_DIR")
+		
+		// Cloudflare R2
+		ossViper.BindEnv("cloudflare_r2.account_id", "CLOUDFLARE_ACCOUNT_ID")
+		ossViper.BindEnv("cloudflare_r2.access_key_id", "CLOUDFLARE_R2_ACCESS_KEY_ID")
+		ossViper.BindEnv("cloudflare_r2.secret_access_key", "CLOUDFLARE_R2_SECRET_ACCESS_KEY")
+		ossViper.BindEnv("cloudflare_r2.bucket", "CLOUDFLARE_R2_BUCKET")
+		ossViper.BindEnv("cloudflare_r2.upload_dir", "CLOUDFLARE_R2_UPLOAD_DIR")
 
 		if err := ossViper.ReadInConfig(); err != nil {
 			return nil, fmt.Errorf("读取 OSS 配置文件失败: %w", err)

@@ -15,12 +15,12 @@ jwt:
 
 database:
   driver: "postgres"
-  host: "${DB_HOST:-localhost}"
-  port: ${DB_PORT:-5432}
-  username: "${DB_USERNAME:-postgres}"
-  password: "${DB_PASSWORD}"
-  dbname: "${DB_NAME:-ossmanager_dev}"
-  sslmode: "${DB_SSLMODE:-disable}"
+  host: "localhost"
+  port: 5432
+  username: "postgres"
+  password: ""
+  dbname: "ossmanager_dev"
+  sslmode: "disable"
   max_idle_conns: 10
   max_open_conns: 100
   conn_max_lifetime: 3600  # 1小时（秒）

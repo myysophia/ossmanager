@@ -145,7 +145,11 @@ func GetUserID(c *gin.Context) uint {
 	// 从上下文中获取用户ID
 	userID, exists := c.Get("user_id")
 	if !exists {
-		return 1 // 默认返回ID为1的管理员用户，避免外键约束错误
+		// 尝试从 userID 获取
+		userID, exists = c.Get("userID")
+		if !exists {
+			return 1 // 默认返回ID为1的管理员用户，避免外键约束错误
+		}
 	}
 
 	// 尝试转换为uint
@@ -161,4 +165,33 @@ func GetUserID(c *gin.Context) uint {
 	default:
 		return 0
 	}
+}
+
+// SuccessResponse 返回成功响应（新版本格式）
+func SuccessResponse(c *gin.Context, message string, data interface{}) {
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": message,
+		"data":    data,
+	})
+}
+
+// ErrorResponse 返回错误响应（新版本格式）
+func ErrorResponse(c *gin.Context, httpCode int, message string, err error) {
+	errorMsg := message
+	if err != nil {
+		errorMsg = err.Error()
+	}
+
+	// 记录错误日志
+	logger.Error("API错误响应",
+		zap.String("path", c.Request.URL.Path),
+		zap.String("method", c.Request.Method),
+		zap.String("message", errorMsg),
+		zap.Error(err))
+
+	c.JSON(httpCode, gin.H{
+		"success": false,
+		"message": errorMsg,
+	})
 }

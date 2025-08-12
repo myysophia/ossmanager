@@ -15,7 +15,7 @@ jwt:
 database:
   driver: "postgres"
   host: "${DB_HOST:-localhost}"
-  port: ${DB_PORT:-5432}
+  port: 5432
   username: "${DB_USERNAME:-postgres}"
   password: "${DB_PASSWORD}"
   dbname: "${DB_NAME:-ossmanager}"

@@ -51,8 +51,8 @@ func (f *DefaultStorageFactory) GetStorageService(storageType string) (StorageSe
 	switch storageType {
 	case StorageTypeAliyunOSS:
 		service, err = NewAliyunOSSService(&f.ossConfig.AliyunOSS)
-	//case StorageTypeAWSS3:
-	//	service, err = NewAWSS3Service(&f.ossConfig.AWSS3)
+	case StorageTypeAWSS3:
+		service, err = NewAWSS3Service(&f.ossConfig.AWSS3)
 	//case StorageTypeR2:
 	//	service, err = NewCloudflareR2Service(&f.ossConfig.CloudflareR2)
 	default:

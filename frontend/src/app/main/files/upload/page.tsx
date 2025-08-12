@@ -338,7 +338,7 @@ export default function UploadPage() {
     
     // EventSource不支持自定义headers，需要通过cookie认证
     // 直接连接到后端，因为SSE不会经过Next.js代理
-    const baseApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+    const baseApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api/v1';
     const sseUrl = `${baseApiUrl}/uploads/${taskId}/stream`;
     console.log('创建SSE连接:', sseUrl);
     console.log('直连后端，依赖cookie认证');
@@ -908,7 +908,7 @@ export default function UploadPage() {
         console.log('SSE连接创建完成，立即开始文件上传（并行执行）');
 
         // 6. 执行流式文件上传（新的API规范）
-        const baseApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+        const baseApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api/v1';
         const uploadUrl = `${baseApiUrl}/oss/files`;
         console.log('流式上传URL:', uploadUrl);
 

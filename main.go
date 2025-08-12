@@ -15,6 +15,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
+	"github.com/myysophia/ossmanager/internal/api"
 	"github.com/myysophia/ossmanager/internal/api/handlers"
 	"github.com/myysophia/ossmanager/internal/api/middleware"
 	"github.com/myysophia/ossmanager/internal/config"
@@ -30,6 +32,12 @@ import (
 var staticFiles embed.FS
 
 func main() {
+	// 加载 .env 文件
+	if err := godotenv.Load(); err != nil {
+		// .env 文件不存在或加载失败时，只是记录日志，不影响程序启动
+		fmt.Printf("警告：无法加载 .env 文件: %v\n", err)
+	}
+
 	// 加载配置 - 使用原有后端的配置系统
 	env := os.Getenv("APP_ENV")
 	if env == "" {
@@ -50,11 +58,23 @@ func main() {
 	logger.Info("📦 前端静态文件已嵌入")
 	logger.Info("配置加载成功", zap.String("env", cfg.App.Env))
 
+	// 调试：打印数据库配置信息
+	logger.Info("数据库配置",
+		zap.String("host", cfg.Database.Host),
+		zap.Int("port", cfg.Database.Port),
+		zap.String("username", cfg.Database.Username),
+		zap.String("dbname", cfg.Database.DBName),
+		zap.String("sslmode", cfg.Database.SSLMode),
+	)
+	logger.Info("数据库连接字符串", zap.String("dsn", cfg.Database.GetDSN()))
+
 	// 初始化数据库
 	if err := db.Init(&cfg.Database); err != nil {
-		logger.Fatal("初始化数据库失败", zap.Error(err))
+		logger.Error("初始化数据库失败，继续启动但功能可能受限", zap.Error(err))
+		// 暂时不退出，允许程序继续运行以测试前端
+	} else {
+		logger.Info("✅ 数据库初始化成功")
 	}
-	logger.Info("✅ 数据库初始化成功")
 
 	// 创建存储服务工厂
 	storageFactory := oss.NewStorageFactory(&cfg.OSS)
@@ -63,8 +83,8 @@ func main() {
 	md5Calculator := function.NewMD5Calculator(storageFactory, cfg.App.Workers)
 	logger.Info("MD5计算器初始化成功", zap.Int("workers", cfg.App.Workers))
 
-	// 设置简化的API路由 - 跳过有问题的WebDAV部分
-	apiRouter := setupSimplifiedAPIRouter(storageFactory, md5Calculator, db.GetDB())
+	// 设置API路由
+	apiRouter := api.SetupRouter(storageFactory, md5Calculator, db.GetDB(), cfg)
 
 	// 创建主路由器，整合API和静态文件服务
 	mainRouter := setupIntegratedRouter(apiRouter)
@@ -104,7 +124,7 @@ func main() {
 		logger.Info("🌐 OSS Manager 简化单体服务启动成功", zap.String("addr", server.Addr))
 		logger.Info("前端访问: http://"+server.Addr)
 		logger.Info("API访问: http://"+server.Addr+"/api/v1")
-		logger.Info("⚠️ WebDAV功能暂时不可用")
+		logger.Info("📁 WebDAV访问: http://"+server.Addr+"/webdav/{bucket}")
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Fatal("HTTP服务器启动失败", zap.Error(err))
 		}
@@ -350,6 +370,8 @@ func ginLoggerMiddleware() gin.HandlerFunc {
 
 // serveStaticFile 提供静态文件服务
 func serveStaticFile(c *gin.Context) {
+	logger.Info("静态文件请求", zap.String("path", c.Request.URL.Path))
+	
 	subFS, err := fs.Sub(staticFiles, "web/build")
 	if err != nil {
 		logger.Error("静态文件系统初始化失败", zap.Error(err))

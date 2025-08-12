@@ -11,25 +11,22 @@ import (
 	"golang.org/x/net/webdav"
 	"gorm.io/gorm"
 
-	"github.com/myysophia/ossmanager/internal/models"
+	models "github.com/myysophia/ossmanager/internal/db/models"
 	"github.com/myysophia/ossmanager/internal/oss"
 )
 
-// 临时类型别名，避免编译错误
-// type Storage = oss.StorageService
-
 // OSSFileSystem 实现 WebDAV FileSystem 接口
 type OSSFileSystem struct {
-	storage oss.Storage
+	storage *oss.StorageServiceAdapter
 	db      *gorm.DB
 	userID  uint
 	bucket  string
 }
 
 // NewOSSFileSystem 创建新的OSS文件系统
-func NewOSSFileSystem(storage oss.Storage, db *gorm.DB, userID uint, bucket string) *OSSFileSystem {
+func NewOSSFileSystem(service oss.StorageService, db *gorm.DB, userID uint, bucket string) *OSSFileSystem {
 	return &OSSFileSystem{
-		storage: storage,
+		storage: oss.NewStorageServiceAdapter(service),
 		db:      db,
 		userID:  userID,
 		bucket:  bucket,

@@ -249,26 +249,35 @@ helm install my-ossmanager ossmanager/ossmanager \
 
 ## WebDAV 使用
 
-### Windows
-1. 打开文件资源管理器
-2. 右键"此电脑" → "映射网络驱动器"
-3. 输入地址：`http://your-server:8080/webdav/your-bucket`
-4. 输入用户名和密码
+OSS Manager 提供完整的 WebDAV 支持，让您通过标准文件管理器直接访问云存储。
 
-### macOS
-1. 打开 Finder
-2. 按 Cmd+K 或菜单"前往" → "连接服务器"
-3. 输入服务器地址：`http://your-server:8080/webdav/your-bucket`
-4. 输入用户名和密码
+### 🚀 快速开始
 
-### Linux
-```bash
-# 使用 davfs2
-sudo mount -t davfs http://your-server:8080/webdav/your-bucket /mnt/webdav
+1. **获取访问令牌**：在 Web 界面的 "WebDAV 访问管理" 页面创建访问令牌
+2. **WebDAV 地址**：`http://your-server:8080/webdav/{bucket-name}`
+3. **认证方式**：
+   - **Basic Auth**：用户名 + WebDAV 令牌
+   - **Bearer Token**：JWT Token（用于 API 集成）
 
-# 使用 cadaver
-cadaver http://your-server:8080/webdav/your-bucket
-```
+### 💻 支持的客户端
+
+- **Windows**：文件资源管理器、WinSCP
+- **macOS**：Finder、命令行 mount
+- **Linux**：davfs2、cadaver
+- **跨平台**：Cyberduck、FileZilla
+- **移动端**：WebDAV Navigator（iOS/Android）
+
+### 📖 详细配置指南
+
+完整的挂载示例、认证配置和故障排查，请参阅：
+**[📄 WebDAV 使用指南](docs/webdav-usage.md)**
+
+包含内容：
+- 各平台详细挂载步骤
+- Token 与 Basic Auth 使用示例  
+- 常见故障排查 FAQ
+- 性能优化建议
+- 安全配置指南
 
 ## 📋 API 文档
 

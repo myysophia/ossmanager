@@ -4,6 +4,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -12,8 +13,12 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/myysophia/ossmanager/internal/auth"
+	"github.com/myysophia/ossmanager/internal/db/models"
+	"github.com/myysophia/ossmanager/internal/logger"
 	"github.com/myysophia/ossmanager/internal/oss"
+	"github.com/myysophia/ossmanager/internal/security"
 	webdavfs "github.com/myysophia/ossmanager/internal/webdav"
+	"go.uber.org/zap"
 )
 
 type WebDAVHandler struct {
@@ -29,22 +34,23 @@ func NewWebDAVHandler(storageFactory oss.StorageFactory, db *gorm.DB) *WebDAVHan
 }
 
 func (h *WebDAVHandler) ServeHTTP(c *gin.Context) {
-	// 从路径中提取存储桶信息
+	// 从路径中提取存储桶信息，使用安全的路径处理
 	path := c.Request.URL.Path
-	pathParts := strings.Split(strings.Trim(path, "/"), "/")
-
-	// 路径格式: /webdav/{bucket}/...
-	if len(pathParts) < 2 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid WebDAV path"})
+	
+	// 移除 /webdav 前缀
+	webdavPath := strings.TrimPrefix(path, "/webdav")
+	
+	// 使用安全的路径提取
+	bucket, filePath, valid := security.ExtractBucketAndPath(webdavPath)
+	if !valid || bucket == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or unsafe WebDAV path"})
 		return
 	}
-
-	bucket := pathParts[1]
 
 	// 获取当前用户
 	userValue, exists := c.Get("user")
 	if !exists {
-		c.Header("WWW-Authenticate", `Basic realm="OSS Manager WebDAV"`)
+		c.Header("WWW-Authenticate", `Bearer realm="OSS Manager WebDAV", Basic realm="OSS Manager WebDAV"`)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
 		return
 	}
@@ -52,8 +58,24 @@ func (h *WebDAVHandler) ServeHTTP(c *gin.Context) {
 	user := userValue.(*auth.Claims)
 
 	// 检查用户对该存储桶的访问权限
-	if !h.checkBucketAccess(user.UserID, bucket) {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied to bucket"})
+	// 如果使用 WebDAV Token，还要检查令牌是否允许访问该存储桶
+	if webdavToken, exists := c.Get("webdav_token"); exists {
+		token := webdavToken.(*models.WebDAVToken)
+		if token.Bucket != bucket {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Token does not allow access to this bucket"})
+			return
+		}
+	} else {
+		// 使用常规权限检查
+		if !h.checkBucketAccess(user.UserID, bucket) {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Access denied to bucket"})
+			return
+		}
+	}
+	
+	// 检查资源级别权限（针对具体文件操作）
+	if !h.checkResourceAccess(user.UserID, bucket, filePath, c.Request.Method) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied to resource"})
 		return
 	}
 
@@ -73,19 +95,14 @@ func (h *WebDAVHandler) ServeHTTP(c *gin.Context) {
 		FileSystem: fs,
 		LockSystem: webdav.NewMemLS(),
 		Logger: func(r *http.Request, err error) {
-			if err != nil {
-				// 可以在这里添加日志记录
-			}
+			// 记录所有 WebDAV 操作到审计日志
+			h.logWebDAVOperation(user.UserID, user.Username, r.Method, bucket, filePath, r.RemoteAddr, r.UserAgent(), err)
 		},
 	}
 
-	// 修改请求路径，移除存储桶前缀
+	// 修改请求路径，使用安全的文件路径
 	originalPath := c.Request.URL.Path
-	if len(pathParts) > 2 {
-		c.Request.URL.Path = "/" + strings.Join(pathParts[2:], "/")
-	} else {
-		c.Request.URL.Path = "/"
-	}
+	c.Request.URL.Path = filePath
 
 	// 处理 WebDAV 请求
 	webdavHandler.ServeHTTP(c.Writer, c.Request)
@@ -94,14 +111,109 @@ func (h *WebDAVHandler) ServeHTTP(c *gin.Context) {
 	c.Request.URL.Path = originalPath
 }
 
-// checkBucketAccess 检查用户是否有权限访问该存储桶
+// checkBucketAccess 检查用户是否有权限访问该存储桶，复用角色-桶映射表
 func (h *WebDAVHandler) checkBucketAccess(userID uint, bucket string) bool {
-	// 检查用户是否有权限访问该存储桶
-	var count int64
-	h.db.Table("role_bucket_access rba").
-		Joins("JOIN user_roles ur ON ur.role_id = rba.role_id").
-		Where("ur.user_id = ? AND rba.bucket = ?", userID, bucket).
-		Count(&count)
+	// 使用现有的 RBAC 函数检查桶访问权限
+	return auth.CheckBucketAccess(h.db, userID, "", bucket)
+}
 
-	return count > 0
+// checkResourceAccess 检查用户对特定资源的访问权限（资源级别校验预留）
+func (h *WebDAVHandler) checkResourceAccess(userID uint, bucket, resourcePath, method string) bool {
+	// 这里预留资源级别的权限校验
+	// 可以根据具体需求实现：
+	// 1. 检查用户对特定文件/目录的权限
+	// 2. 根据操作类型（GET/PUT/DELETE等）进行不同的权限检查
+	// 3. 支持基于文件路径的细粒度权限控制
+	
+	// 目前实现基本的操作权限检查
+	var resource, action string
+	
+	switch method {
+	case "GET", "HEAD", "OPTIONS", "PROPFIND":
+		resource = "webdav"
+		action = "read"
+	case "PUT", "POST", "MKCOL", "COPY", "MOVE":
+		resource = "webdav"
+		action = "write"
+	case "DELETE":
+		resource = "webdav"
+		action = "delete"
+	case "LOCK", "UNLOCK", "PROPPATCH":
+		resource = "webdav"
+		action = "manage"
+	default:
+		// 未知方法，拒绝访问
+		return false
+	}
+	
+	// 检查用户权限
+	err := auth.CheckPermission(userID, resource, action)
+	if err != nil {
+		logger.Warn("WebDAV resource access denied",
+			zap.Uint("userID", userID),
+			zap.String("bucket", bucket),
+			zap.String("resource", resourcePath),
+			zap.String("method", method),
+			zap.Error(err))
+		return false
+	}
+	
+	return true
+}
+
+// logWebDAVOperation 记录 WebDAV 操作到审计日志
+func (h *WebDAVHandler) logWebDAVOperation(userID uint, username, method, bucket, resourcePath, remoteAddr, userAgent string, err error) {
+	// 构建审计日志
+	status := "SUCCESS"
+	if err != nil {
+		status = "FAILED"
+	}
+	
+	// 构建详细信息
+	details := fmt.Sprintf(`{"method":"%s","bucket":"%s","resource":"%s","error":"%v"}`,
+		method, bucket, resourcePath, err)
+	
+	// 创建审计日志记录
+	auditLog := &models.AuditLog{
+		UserID:       userID,
+		Username:     username,
+		Action:       method,
+		ResourceType: "webdav",
+		ResourceID:   bucket + ":" + resourcePath,
+		Details:      details,
+		IPAddress:    strings.Split(remoteAddr, ":")[0], // 提取IP地址
+		UserAgent:    userAgent,
+		Status:       status,
+	}
+	
+	// 异步保存审计日志
+	go func() {
+		if saveErr := h.db.Create(auditLog).Error; saveErr != nil {
+			logger.Error("Failed to save WebDAV audit log",
+				zap.Error(saveErr),
+				zap.Uint("userID", userID),
+				zap.String("method", method),
+				zap.String("bucket", bucket))
+		}
+	}()
+	
+	// 同时记录到应用日志
+	if err != nil {
+		logger.Error("WebDAV operation failed",
+			zap.Uint("userID", userID),
+			zap.String("username", username),
+			zap.String("method", method),
+			zap.String("bucket", bucket),
+			zap.String("resource", resourcePath),
+			zap.String("remoteAddr", remoteAddr),
+			zap.Error(err))
+	} else {
+		logger.Info("WebDAV operation success",
+			zap.Uint("userID", userID),
+			zap.String("username", username),
+			zap.String("method", method),
+			zap.String("bucket", bucket),
+			zap.String("resource", resourcePath),
+			zap.String("remoteAddr", remoteAddr))
+	}
 }

@@ -717,6 +717,105 @@ func (s *AliyunOSSService) GenerateDownloadURLWithBucket(objectKey string, downl
 	return signedURL, expires, nil
 }
 
+// PutObjectToBucket 直接上传对象到指定存储桶（WebDAV专用）
+func (s *AliyunOSSService) PutObjectToBucket(bucket, key string, reader io.Reader, size int64, contentType string) error {
+	// 创建默认客户端（使用配置中的region）
+	client, err := oss.New(s.config.Endpoint, s.config.AccessKeyID, s.config.AccessKeySecret)
+	if err != nil {
+		return fmt.Errorf("创建OSS客户端失败: %w", err)
+	}
+
+	// 获取指定存储桶
+	ossBucket, err := client.Bucket(bucket)
+	if err != nil {
+		return fmt.Errorf("获取存储桶失败: %w", err)
+	}
+
+	// 设置选项
+	options := []oss.Option{}
+	if contentType != "" {
+		options = append(options, oss.ContentType(contentType))
+	}
+
+	// 上传对象
+	err = ossBucket.PutObject(key, reader, options...)
+	if err != nil {
+		return fmt.Errorf("上传对象失败: %w", err)
+	}
+
+	return nil
+}
+
+// ListObjects 列出对象（支持前缀查询）
+func (s *AliyunOSSService) ListObjects(bucket, prefix string, limit int) ([]ObjectInfo, error) {
+	// 创建默认客户端（使用配置中的region）
+	client, err := oss.New(s.config.Endpoint, s.config.AccessKeyID, s.config.AccessKeySecret)
+	if err != nil {
+		return nil, fmt.Errorf("创建OSS客户端失败: %w", err)
+	}
+
+	// 获取指定存储桶
+	ossBucket, err := client.Bucket(bucket)
+	if err != nil {
+		return nil, fmt.Errorf("获取存储桶失败: %w", err)
+	}
+
+	// 设置列出选项
+	options := []oss.Option{}
+	if prefix != "" {
+		options = append(options, oss.Prefix(prefix))
+	}
+	if limit > 0 {
+		options = append(options, oss.MaxKeys(limit))
+	}
+
+	// 列出对象
+	result, err := ossBucket.ListObjects(options...)
+	if err != nil {
+		return nil, fmt.Errorf("列出对象失败: %w", err)
+	}
+
+	// 转换结果
+	objects := make([]ObjectInfo, len(result.Objects))
+	for i, obj := range result.Objects {
+		objects[i] = ObjectInfo{
+			Key:          obj.Key,
+			Size:         obj.Size,
+			LastModified: obj.LastModified,
+			ETag:         strings.Trim(obj.ETag, "\""),
+			ContentType:  obj.Type, // OSS返回的Type字段
+		}
+	}
+
+	return objects, nil
+}
+
+// CopyObject 复制对象
+func (s *AliyunOSSService) CopyObject(srcBucket, srcKey, dstBucket, dstKey string) error {
+	// 创建默认客户端（使用配置中的region）
+	client, err := oss.New(s.config.Endpoint, s.config.AccessKeyID, s.config.AccessKeySecret)
+	if err != nil {
+		return fmt.Errorf("创建OSS客户端失败: %w", err)
+	}
+
+	// 获取目标存储桶
+	dstOssBucket, err := client.Bucket(dstBucket)
+	if err != nil {
+		return fmt.Errorf("获取目标存储桶失败: %w", err)
+	}
+
+	// 构建源对象路径
+	srcObjectPath := fmt.Sprintf("/%s/%s", srcBucket, srcKey)
+
+	// 复制对象
+	_, err = dstOssBucket.CopyObject(srcObjectPath, dstKey)
+	if err != nil {
+		return fmt.Errorf("复制对象失败: %w", err)
+	}
+
+	return nil
+}
+
 // DeleteObjectFromBucket 删除指定存储桶中的文件
 func (s *AliyunOSSService) DeleteObjectFromBucket(objectKey string, regionCode string, bucketName string) error {
 	logger.Info("开始删除指定存储桶中的文件",

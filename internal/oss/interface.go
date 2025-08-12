@@ -18,6 +18,15 @@ type Part struct {
 	ETag       string `json:"etag"`
 }
 
+// ObjectInfo 对象信息
+type ObjectInfo struct {
+	Key          string    `json:"key"`
+	Size         int64     `json:"size"`
+	LastModified time.Time `json:"last_modified"`
+	ETag         string    `json:"etag"`
+	ContentType  string    `json:"content_type"`
+}
+
 // StorageService 存储服务接口
 type StorageService interface {
 	// GetName 获取存储服务名称
@@ -101,6 +110,31 @@ type StorageService interface {
 
 	// GetDownloadURL 获取文件下载URL
 	GetDownloadURL(objectKey string, expires time.Duration) (string, error)
+
+	// WebDAV 特定方法
+	// ListObjects 列出对象（支持前缀查询）
+	// bucket: 存储桶名
+	// prefix: 前缀
+	// limit: 限制数量
+	// 返回：对象信息列表, 错误
+	ListObjects(bucket, prefix string, limit int) ([]ObjectInfo, error)
+
+	// CopyObject 复制对象
+	// srcBucket: 源存储桶
+	// srcKey: 源对象键
+	// dstBucket: 目标存储桶
+	// dstKey: 目标对象键
+	// 返回：错误
+	CopyObject(srcBucket, srcKey, dstBucket, dstKey string) error
+
+	// PutObjectToBucket 直接上传对象到指定存储桶（WebDAV专用）
+	// bucket: 存储桶名
+	// key: 对象键
+	// reader: 数据读取器
+	// size: 数据大小
+	// contentType: 内容类型
+	// 返回：错误
+	PutObjectToBucket(bucket, key string, reader io.Reader, size int64, contentType string) error
 }
 
 // StorageFactory 存储服务工厂
