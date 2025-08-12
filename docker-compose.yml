@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  ossmanager:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ossmanager
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment:
+      # 应用配置
+      APP_ENV: prod
+      GIN_MODE: release
+      
+      # JWT配置
+      JWT_SECRET_KEY: "${JWT_SECRET_KEY}"
+      
+      # 数据库配置
+      DB_HOST: "${DB_HOST}"
+      DB_PORT: "${DB_PORT:-5432}"
+      DB_USERNAME: "${DB_USERNAME}"
+      DB_PASSWORD: "${DB_PASSWORD}"
+      DB_NAME: "${DB_NAME}"
+      DB_SSLMODE: "${DB_SSLMODE:-require}"
+      
+      # OSS配置（可选）
+      OSS_ACCESS_KEY_ID: "${OSS_ACCESS_KEY_ID:-}"
+      OSS_ACCESS_KEY_SECRET: "${OSS_ACCESS_KEY_SECRET:-}"
+      OSS_ENDPOINT: "${OSS_ENDPOINT:-}"
+      OSS_REGION: "${OSS_REGION:-}"
+      OSS_BUCKET: "${OSS_BUCKET:-}"
+    volumes:
+      - ossmanager_data:/data/oss
+      - ossmanager_logs:/app/logs
+      - ossmanager_uploads:/app/tmp/uploads
+    networks:
+      - ossmanager_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  ossmanager_data:
+    driver: local
+  ossmanager_logs:
+    driver: local
+  ossmanager_uploads:
+    driver: local
+
+networks:
+  ossmanager_network:
+    driver: bridge
