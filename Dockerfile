@@ -19,11 +19,20 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 RUN npm run build
 
-# 准备静态文件
+# 准备静态文件 - Next.js static export mode
 RUN mkdir -p /app/web/build && \
-    cp -r .next/standalone/* /app/web/ && \
-    cp -r .next/static /app/web/build/_next/static && \
-    cp -r public/* /app/web/build/ 2>/dev/null || true
+    if [ -d "out" ]; then \
+        cp -r out/* /app/web/build/; \
+    elif [ -d ".next/standalone" ]; then \
+        cp -r .next/standalone/* /app/web/build/ && \
+        cp -r .next/static /app/web/build/_next/static; \
+    else \
+        echo "No build output found"; \
+        exit 1; \
+    fi && \
+    if [ -d "public" ]; then \
+        cp -r public/* /app/web/build/ 2>/dev/null || true; \
+    fi
 
 # 阶段2：构建后端
 FROM golang:1.23-alpine AS backend-builder
