@@ -37,13 +37,20 @@ APP_PORT=8080
 # JWT密钥（必须修改！）
 JWT_SECRET_KEY=your-super-secret-jwt-key-at-least-32-characters-long
 
-# 数据库配置
-DB_HOST=your-database-host
-DB_PORT=5432
-DB_USERNAME=your-db-username
-DB_PASSWORD=your-db-password
-DB_NAME=your-database-name
-DB_SSLMODE=require
+# 内置 PostgreSQL 数据库配置（推荐）
+POSTGRES_DB=ossmanager
+POSTGRES_USER=ossuser
+POSTGRES_PASSWORD=your-secure-database-password  # 必须修改！
+POSTGRES_PORT=5432
+DB_SSLMODE=disable
+
+# 如果使用外部数据库，可以取消下面的注释并注释上面的内置数据库配置
+# DB_HOST=your-external-database-host
+# DB_PORT=5432
+# DB_USERNAME=your-db-username
+# DB_PASSWORD=your-db-password
+# DB_NAME=your-database-name
+# DB_SSLMODE=require
 
 # OSS存储配置（可选）
 OSS_ACCESS_KEY_ID=your-oss-access-key
@@ -161,11 +168,17 @@ docker-compose logs --since "2024-01-01T00:00:00"
 ### 数据备份
 
 ```bash
-# 备份数据卷
-docker run --rm -v ossmanager_ossmanager_data:/data -v $(pwd):/backup alpine tar czf /backup/ossmanager-data-backup.tar.gz /data
+# 备份 PostgreSQL 数据库
+docker-compose exec postgres pg_dump -U ossuser -d ossmanager > backup-$(date +%Y%m%d-%H%M%S).sql
+
+# 恢复 PostgreSQL 数据库
+docker-compose exec -T postgres psql -U ossuser -d ossmanager < backup-20240101-120000.sql
+
+# 备份所有数据卷
+docker run --rm -v ossmanager_postgres_data:/postgres -v ossmanager_ossmanager_data:/data -v $(pwd):/backup alpine tar czf /backup/ossmanager-full-backup-$(date +%Y%m%d).tar.gz /postgres /data
 
 # 恢复数据卷
-docker run --rm -v ossmanager_ossmanager_data:/data -v $(pwd):/backup alpine tar xzf /backup/ossmanager-data-backup.tar.gz -C /
+docker run --rm -v ossmanager_postgres_data:/postgres -v ossmanager_ossmanager_data:/data -v $(pwd):/backup alpine tar xzf /backup/ossmanager-full-backup-20240101.tar.gz -C /
 ```
 
 ## 🔧 配置说明
@@ -176,12 +189,19 @@ docker run --rm -v ossmanager_ossmanager_data:/data -v $(pwd):/backup alpine tar
 |--------|------|--------|------|
 | `APP_PORT` | 应用端口 | 8080 | 否 |
 | `JWT_SECRET_KEY` | JWT签名密钥 | - | **是** |
-| `DB_HOST` | 数据库主机 | - | **是** |
+| **内置数据库配置** |
+| `POSTGRES_DB` | PostgreSQL数据库名 | ossmanager | 否 |
+| `POSTGRES_USER` | PostgreSQL用户名 | ossuser | 否 |
+| `POSTGRES_PASSWORD` | PostgreSQL密码 | - | **是** |
+| `POSTGRES_PORT` | PostgreSQL端口 | 5432 | 否 |
+| `DB_SSLMODE` | SSL模式 | disable | 否 |
+| **外部数据库配置** (可选) |
+| `DB_HOST` | 数据库主机 | - | 否 |
 | `DB_PORT` | 数据库端口 | 5432 | 否 |
-| `DB_USERNAME` | 数据库用户名 | - | **是** |
-| `DB_PASSWORD` | 数据库密码 | - | **是** |
-| `DB_NAME` | 数据库名称 | - | **是** |
-| `DB_SSLMODE` | SSL模式 | require | 否 |
+| `DB_USERNAME` | 数据库用户名 | - | 否 |
+| `DB_PASSWORD` | 数据库密码 | - | 否 |
+| `DB_NAME` | 数据库名称 | - | 否 |
+| **OSS存储配置** (可选) |
 | `OSS_ACCESS_KEY_ID` | OSS访问密钥ID | - | 否 |
 | `OSS_ACCESS_KEY_SECRET` | OSS访问密钥 | - | 否 |
 | `OSS_ENDPOINT` | OSS端点 | - | 否 |

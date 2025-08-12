@@ -1,0 +1,32 @@
+app:
+  name: "OSS Manager"
+  env: "development"  # development, production
+  port: 8080
+  read_timeout: 600    # 秒
+  write_timeout: 600   # 秒
+  upload_temp_dir: "./tmp/uploads"
+  max_file_size: 1073741824  # 1GB
+  ChunkConcurrency: 1
+
+jwt:
+  secret_key: "${JWT_SECRET_KEY:-dev-jwt-secret-key-for-testing-only}"
+  expires_in: 86400  # 24小时（秒）
+  issuer: "ossmanager"
+
+database:
+  driver: "postgres"
+  host: "${DB_HOST:-localhost}"
+  port: ${DB_PORT:-5432}
+  username: "${DB_USERNAME:-postgres}"
+  password: "${DB_PASSWORD}"
+  dbname: "${DB_NAME:-ossmanager_dev}"
+  sslmode: "${DB_SSLMODE:-disable}"
+  max_idle_conns: 10
+  max_open_conns: 100
+  conn_max_lifetime: 3600  # 1小时（秒）
+
+log:
+  level: "debug"  # debug, info, warn, error
+  format: "console"  # console, json
+  output: "both"  # stdout, file, both
+  file_path: "./logs/app.log" 

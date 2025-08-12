@@ -1,11 +1,37 @@
 version: '3.8'
 
 services:
-  ossmanager:
-    # 使用GitHub Actions构建的镜像
-    image: "${ACR_REGISTRY}/novacloud/ossmanager:latest"
-    container_name: ossmanager
+  postgres:
+    image: postgres:15-alpine
+    container_name: ossmanager-postgres
     restart: unless-stopped
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB:-ossmanager}"
+      POSTGRES_USER: "${POSTGRES_USER:-ossuser}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/oss-manager.sql:/docker-entrypoint-initdb.d/oss-manager.sql:ro
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - ossmanager_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ossuser} -d ${POSTGRES_DB:-ossmanager}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  ossmanager:
+    # 使用预构建的镜像（从GitHub Actions）
+    image: "${ACR_REGISTRY}/ossmanager:latest"
+    container_name: ossmanager-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
       - "${APP_PORT:-8080}:8080"
     environment:
@@ -17,12 +43,12 @@ services:
       JWT_SECRET_KEY: "${JWT_SECRET_KEY}"
       
       # 数据库配置
-      DB_HOST: "${DB_HOST}"
-      DB_PORT: "${DB_PORT:-5432}"
-      DB_USERNAME: "${DB_USERNAME}"
-      DB_PASSWORD: "${DB_PASSWORD}"
-      DB_NAME: "${DB_NAME}"
-      DB_SSLMODE: "${DB_SSLMODE:-require}"
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: "${POSTGRES_USER:-ossuser}"
+      DB_PASSWORD: "${POSTGRES_PASSWORD}"
+      DB_NAME: "${POSTGRES_DB:-ossmanager}"
+      DB_SSLMODE: "${DB_SSLMODE:-disable}"
       
       # OSS配置（可选）
       OSS_ACCESS_KEY_ID: "${OSS_ACCESS_KEY_ID:-}"
@@ -44,6 +70,8 @@ services:
       start_period: 60s
 
 volumes:
+  postgres_data:
+    driver: local
   ossmanager_data:
     driver: local
   ossmanager_logs:

@@ -1,0 +1,38 @@
+aliyun_oss:
+  access_key_id: "${ALIYUN_ACCESS_KEY_ID:-your-aliyun-access-key-id}"
+  access_key_secret: "${ALIYUN_ACCESS_KEY_SECRET:-your-aliyun-access-key-secret}"
+  endpoint: "${ALIYUN_OSS_ENDPOINT:-https://oss-cn-hangzhou.aliyuncs.com}"
+  bucket: "${ALIYUN_OSS_BUCKET:-your-bucket-name}"
+  region: "${ALIYUN_OSS_REGION:-cn-hangzhou}"
+  upload_dir: "${ALIYUN_OSS_UPLOAD_DIR:-uploads/}"
+  url_expire_time: 14400  # 4 hours in seconds
+  transfer_accelerate:
+    enabled: false  # 是否开启传输加速（当bucket开启了传输加速功能时设置为true）
+    type: "global"  # 加速类型: "global" 全球加速 或 "overseas" 海外加速
+    # 注意：启用传输加速后，将使用阿里云的加速域名而不是区域域名
+    # global: https://oss-accelerate.aliyuncs.com
+    # overseas: https://oss-accelerate-overseas.aliyuncs.com
+  function_compute:
+    enabled: false  # 默认关闭，避免意外调用
+    endpoint: "${ALIYUN_FC_ENDPOINT:-https://your-account-id.cn-hangzhou.fc.aliyuncs.com}"
+    api_version: "2016-08-15"
+    access_key_id: "${ALIYUN_FC_ACCESS_KEY_ID:-your-fc-access-key-id}"
+    access_key_secret: "${ALIYUN_FC_ACCESS_KEY_SECRET:-your-fc-access-key-secret}"
+    service_name: "${ALIYUN_FC_SERVICE_NAME:-oss-manager}"
+    function_name: "${ALIYUN_FC_FUNCTION_NAME:-calculate-md5}"
+
+aws_s3:
+  access_key_id: "${AWS_ACCESS_KEY_ID:-your-aws-access-key-id}"
+  secret_access_key: "${AWS_SECRET_ACCESS_KEY:-your-aws-secret-access-key}"
+  region: "${AWS_REGION:-us-east-1}"
+  bucket: "${AWS_S3_BUCKET:-your-s3-bucket-name}"
+  upload_dir: "${AWS_S3_UPLOAD_DIR:-uploads/}"
+  url_expire_time: 3600
+
+cloudflare_r2:
+  account_id: "${CLOUDFLARE_ACCOUNT_ID:-your-account-id}"
+  access_key_id: "${CLOUDFLARE_R2_ACCESS_KEY_ID:-your-r2-access-key-id}"
+  secret_access_key: "${CLOUDFLARE_R2_SECRET_ACCESS_KEY:-your-r2-secret-access-key}"
+  bucket: "${CLOUDFLARE_R2_BUCKET:-your-r2-bucket-name}"
+  upload_dir: "${CLOUDFLARE_R2_UPLOAD_DIR:-uploads/}"
+  url_expire_time: 3600
