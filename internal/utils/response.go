@@ -17,12 +17,13 @@ type Response struct {
 
 // 定义状态码
 const (
-	CodeSuccess       = 200 // 成功
-	CodeInvalidParams = 400 // 参数错误
-	CodeUnauthorized  = 401 // 未授权
-	CodeForbidden     = 403 // 禁止访问
-	CodeNotFound      = 404 // 资源不存在
-	CodeInternalError = 500 // 服务器内部错误
+	CodeSuccess        = 200 // 成功
+	CodeInvalidParams  = 400 // 参数错误
+	CodeUnauthorized   = 401 // 未授权
+	CodeForbidden      = 403 // 禁止访问
+	CodeNotFound       = 404 // 资源不存在
+	CodeTooManyRequests = 429 // 请求过多
+	CodeInternalError  = 500 // 服务器内部错误
 
 	// OSS相关状态码
 	CodeServerError    = 50001 // 服务器错误
@@ -34,12 +35,13 @@ const (
 
 // 对应的消息
 var codeMsgMap = map[int]string{
-	CodeSuccess:       "操作成功",
-	CodeInvalidParams: "参数错误",
-	CodeUnauthorized:  "未授权",
-	CodeForbidden:     "禁止访问",
-	CodeNotFound:      "资源不存在",
-	CodeInternalError: "服务器内部错误",
+	CodeSuccess:        "操作成功",
+	CodeInvalidParams:  "参数错误",
+	CodeUnauthorized:   "未授权",
+	CodeForbidden:      "禁止访问",
+	CodeNotFound:       "资源不存在",
+	CodeTooManyRequests: "请求过于频繁，请稍后再试",
+	CodeInternalError:  "服务器内部错误",
 
 	// OSS相关状态码消息
 	CodeServerError:    "服务器错误",

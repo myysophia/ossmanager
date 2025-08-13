@@ -1,0 +1,20 @@
+1:"$Sreact.fragment"
+2:I[65,["8791","static/chunks/8791-d8bd16647bd02489.js","6829","static/chunks/6829-bd531a9994f2a762.js","6980","static/chunks/6980-5da93930f207334e.js","7039","static/chunks/7039-6fe9ac5a0eb930d4.js","3464","static/chunks/3464-0053be17d0ed6e27.js","5706","static/chunks/5706-373a882314e2fa0b.js","4509","static/chunks/4509-c116c93839dc4b10.js","7177","static/chunks/app/layout-32de6404a5e88a3a.js"],"Providers"]
+3:I[87555,[],""]
+4:I[51901,["8791","static/chunks/8791-d8bd16647bd02489.js","6829","static/chunks/6829-bd531a9994f2a762.js","6980","static/chunks/6980-5da93930f207334e.js","7039","static/chunks/7039-6fe9ac5a0eb930d4.js","8039","static/chunks/app/error-15af6d7d39a889d6.js"],"default"]
+5:I[31295,[],""]
+6:I[99543,["8791","static/chunks/8791-d8bd16647bd02489.js","4345","static/chunks/app/not-found-32ea0e97d4cef69a.js"],"default"]
+7:I[90894,[],"ClientPageRoot"]
+8:I[9113,["844","static/chunks/ee560e2c-137292bb6e6c67ab.js","8791","static/chunks/8791-d8bd16647bd02489.js","6829","static/chunks/6829-bd531a9994f2a762.js","6980","static/chunks/6980-5da93930f207334e.js","7039","static/chunks/7039-6fe9ac5a0eb930d4.js","2210","static/chunks/2210-7ea01a52c0e4a072.js","3513","static/chunks/3513-49aa2de21c028b4f.js","8277","static/chunks/8277-c0c9d1fe30059bbf.js","6654","static/chunks/6654-217fde663d934339.js","8815","static/chunks/8815-0114b5529641be27.js","8670","static/chunks/8670-4629d338d67db850.js","2714","static/chunks/2714-31a1ef9898cfb2a2.js","9963","static/chunks/9963-e32c9a8e1f77c92d.js","9881","static/chunks/9881-15b6405784ffb1c4.js","1411","static/chunks/app/file-explorer/page-4ca2f998600e8bed.js"],"default"]
+b:I[59665,[],"OutletBoundary"]
+e:I[59665,[],"ViewportBoundary"]
+10:I[59665,[],"MetadataBoundary"]
+12:I[26614,[],""]
+:HL["/_next/static/css/04d4e12dc51e40aa.css","style"]
+0:{"P":null,"b":"WwtBplPKa2v8-ORwJj18c","p":"","c":["","file-explorer",""],"i":false,"f":[[["",{"children":["file-explorer",{"children":["__PAGE__",{}]}]},"$undefined","$undefined",true],["",["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/css/04d4e12dc51e40aa.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]],["$","html",null,{"lang":"zh","children":["$","body",null,{"children":["$","$L2",null,{"children":[["$","$L3",null,{"parallelRouterKey":"children","error":"$4","errorStyles":[],"errorScripts":[],"template":["$","$L5",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","$L6",null,{}],[]],"forbidden":"$undefined","unauthorized":"$undefined"}],false]}]}]}]]}],{"children":["file-explorer",["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L5",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":["__PAGE__",["$","$1","c",{"children":[["$","$L7",null,{"Component":"$8","searchParams":{},"params":{},"promises":["$@9","$@a"]}],"$undefined",null,["$","$Lb",null,{"children":["$Lc","$Ld",null]}]]}],{},null,false]},null,false]},null,false],["$","$1","h",{"children":[null,["$","$1","k-DPfF2qhaDj_dR62kxqi",{"children":[["$","$Le",null,{"children":"$Lf"}],null]}],["$","$L10",null,{"children":"$L11"}]]}],false]],"m":"$undefined","G":["$12","$undefined"],"s":false,"S":true}
+9:{}
+a:{}
+f:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+c:null
+d:null
+11:[["$","title","0",{"children":"OSS 文件管理系统"}],["$","meta","1",{"name":"description","content":"一个基于 Next.js 的 OSS 文件管理系统"}],["$","link","2",{"rel":"icon","href":"/favicon.ico","type":"image/x-icon","sizes":"16x16"}]]

@@ -38,7 +38,9 @@ import {
   FiChevronLeft,
   FiDatabase,
   FiMoon,
-  FiSun
+  FiSun,
+  FiHardDrive,
+  FiFolder
 } from 'react-icons/fi';
 import { ColorModeToggle } from '../common/ColorModeToggle';
 import apiClient from '@/lib/api/axios';
@@ -72,6 +74,16 @@ const MENU_ITEMS: MenuItemType[] = [
     label: '文件查询', 
     path: '/main/files', 
     icon: <FiSearch size={18} /> 
+  },
+  { 
+    label: 'WebDAV访问管理', 
+    path: '/main/webdav', 
+    icon: <FiHardDrive size={18} /> 
+  },
+  { 
+    label: 'WebDAV 浏览器', 
+    path: '/main/webdav/browser', 
+    icon: <FiFolder size={18} /> 
   },
   { 
     label: '后台管理', 

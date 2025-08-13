@@ -1085,8 +1085,32 @@ func (h *OSSFileHandler) List(c *gin.Context) {
 		return
 	}
 
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+	// Support both old pagination params (page/page_size) and new ones (offset/limit)
+	var offset, limit int
+	if offsetStr := c.Query("offset"); offsetStr != "" {
+		offset, _ = strconv.Atoi(offsetStr)
+		limit, _ = strconv.Atoi(c.DefaultQuery("limit", "10"))
+	} else {
+		// Legacy pagination support
+		page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+		pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+		if page < 1 {
+			page = 1
+		}
+		offset = (page - 1) * pageSize
+		limit = pageSize
+	}
+	
+	// Apply reasonable limits
+	if offset < 0 {
+		offset = 0
+	}
+	if limit <= 0 {
+		limit = 10
+	}
+	if limit > 100 {
+		limit = 100 // Max 100 items per request
+	}
 	configID := c.Query("config_id")
 	// 首先，获取去重后的所有文件名
 	var uniqueFileNames []string
@@ -1102,13 +1126,16 @@ func (h *OSSFileHandler) List(c *gin.Context) {
 
 	total := int64(len(uniqueFileNames))
 
-	// 对于分页的处理
-	startIdx := (page - 1) * pageSize
-	endIdx := startIdx + pageSize
+	// Apply pagination
+	startIdx := offset
+	endIdx := offset + limit
 	if startIdx >= len(uniqueFileNames) {
 		h.Success(c, gin.H{
-			"total": total,
-			"items": []models.OSSFile{},
+			"total":   total,
+			"items":   []models.OSSFile{},
+			"offset":  offset,
+			"limit":   limit,
+			"hasMore": false,
 		})
 		return
 	}
@@ -1136,9 +1163,14 @@ func (h *OSSFileHandler) List(c *gin.Context) {
 		files = append(files, latest)
 	}
 
+	hasMore := endIdx < len(uniqueFileNames)
+	
 	h.Success(c, gin.H{
-		"total": total,
-		"items": files,
+		"total":   total,
+		"items":   files,
+		"offset":  offset,
+		"limit":   limit,
+		"hasMore": hasMore,
 	})
 }
 

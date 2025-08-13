@@ -13,6 +13,9 @@
   <p>🏗️ <strong>单体应用架构</strong> - 前后端集成，单文件部署，零依赖运行</p>
   
   <img src="https://raw.githubusercontent.com/myysophia/ossmanager/main/docs/demo.gif" alt="OSS Manager Demo" width="800" />
+  
+  <h3>🗂️ WebDAV 文件浏览器</h3>
+  <img src="https://raw.githubusercontent.com/myysophia/ossmanager/main/docs/webdav-browser-screenshot.png" alt="WebDAV 文件浏览器" width="800" />
 </div>
 
 ---
@@ -252,6 +255,16 @@ helm install my-ossmanager ossmanager/ossmanager \
 OSS Manager 提供完整的 WebDAV 支持，让您通过标准文件管理器直接访问云存储。
 
 ### 🚀 快速开始
+
+#### WebDAV 文件浏览器（推荐）
+
+1. **登录系统**：访问 `http://your-server:8080` 并登录
+2. **进入浏览器**：导航到 "WebDAV" → "浏览器" 页面
+3. **选择存储桶**：从下拉菜单中选择要访问的存储桶
+4. **即时访问**：浏览器内直接管理文件，无需额外配置
+5. **外部客户端**：可选择创建访问令牌用于第三方客户端
+
+#### 传统 WebDAV 客户端
 
 1. **获取访问令牌**：在 Web 界面的 "WebDAV 访问管理" 页面创建访问令牌
 2. **WebDAV 地址**：`http://your-server:8080/webdav/{bucket-name}`

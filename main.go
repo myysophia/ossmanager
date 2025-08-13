@@ -327,6 +327,9 @@ func setupIntegratedRouter(apiRouter *gin.Engine) *gin.Engine {
 
 	// API路由组 - 优先级最高
 	mainRouter.Any("/api/*proxyPath", gin.WrapH(http.StripPrefix("/api", apiRouter)))
+	
+	// WebDAV路由 - 高优先级，代理到API路由器但不去掉前缀
+	mainRouter.Any("/webdav/*proxyPath", gin.WrapH(apiRouter))
 
 	// 静态文件和SPA路由 - 最低优先级
 	mainRouter.NoRoute(func(c *gin.Context) {

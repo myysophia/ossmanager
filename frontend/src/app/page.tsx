@@ -103,9 +103,9 @@ export default function HomePage() {
               <Button
                 size="lg"
                 variant="outline"
-                onClick={() => router.push('https://baidu.com')}
+                onClick={() => router.push('/file-explorer')}
               >
-                查看文档
+                文件管理器
               </Button>
             </Stack>
           </MotionBox>

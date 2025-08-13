@@ -2,11 +2,73 @@
 
 ## 概述
 
-OSS Manager 提供完整的 WebDAV 支持，让您可以通过标准的文件管理器（如 Windows 文件资源管理器、macOS Finder）或第三方客户端直接访问和管理云存储文件，就像操作本地文件夹一样简单。
+OSS Manager 提供完整的 WebDAV 支持，包括现代化的浏览器内文件管理器和传统 WebDAV 客户端支持。您可以通过多种方式访问和管理云存储文件：
 
-## 快速开始
+- **WebDAV 文件浏览器**：现代化的浏览器内文件管理界面，无需额外配置
+- **传统 WebDAV 客户端**：支持标准文件管理器（Windows 文件资源管理器、macOS Finder）
+- **第三方客户端**：兼容各种 WebDAV 客户端应用程序
+- **API 集成**：提供完整的 RESTful API 用于程序化访问
 
-### 1. 获取访问凭据
+## WebDAV 文件浏览器（推荐）
+
+### 功能特性
+
+WebDAV 文件浏览器是一个现代化的浏览器内文件管理界面，提供以下核心功能：
+
+- **🚀 即时访问**：登录后直接使用，无需额外配置或令牌设置
+- **🔒 自动认证**：使用用户的 JWT Token 自动完成身份验证
+- **📁 完整功能**：支持文件浏览、上传、下载、创建文件夹等所有操作
+- **🌐 跨平台兼容**：支持所有现代浏览器，包括桌面和移动端
+- **⚡ 高性能**：通过代理 API 优化传输，支持大文件和分片上传
+- **👥 多存储桶**：一键切换不同存储桶，统一管理界面
+
+### 使用步骤
+
+1. **登录系统**
+   - 访问 OSS Manager Web 界面 (`http://your-domain:8080`)
+   - 使用您的用户名和密码登录
+
+2. **进入 WebDAV 浏览器**
+   - 在主导航栏点击 "WebDAV" 菜单
+   - 选择 "浏览器" 子页面
+
+3. **选择存储桶**
+   - 从存储桶下拉列表中选择要访问的存储桶
+   - 系统会自动显示该存储桶的 WebDAV 连接信息
+
+4. **开始文件管理**
+   - 浏览器内直接管理文件和文件夹
+   - 支持拖拽上传、批量操作等现代化功能
+
+5. **外部客户端集成（可选）**
+   - 如需使用第三方 WebDAV 客户端，可在同一页面创建访问令牌
+   - 系统会显示完整的连接配置信息
+
+### 技术架构
+
+```mermaid
+graph LR
+    Browser[浏览器] --> WebUI[Web界面]
+    WebUI --> ProxyAPI[WebDAV代理API]
+    ProxyAPI --> Auth[JWT认证]
+    ProxyAPI --> Storage[云存储]
+    
+    ExternalClient[外部客户端] --> WebDAVServer[WebDAV服务器]
+    WebDAVServer --> TokenAuth[令牌认证]
+    WebDAVServer --> Storage
+```
+
+**优势对比**：
+- ✅ **浏览器访问**：无需安装软件，即开即用
+- ✅ **自动认证**：使用现有登录状态，安全便捷
+- ✅ **现代界面**：响应式设计，用户体验优秀
+- ✅ **功能完整**：支持所有文件操作和批量处理
+
+## 传统 WebDAV 客户端
+
+### 快速开始
+
+#### 1. 获取访问凭据
 
 在 OSS Manager 管理界面：
 1. 导航到 **WebDAV 访问管理** 页面
@@ -422,6 +484,453 @@ curl -H "Authorization: Bearer your-jwt-token" \
    - 定期清理临时文件
    - 监控存储使用量
    - 检查系统性能指标
+
+## WebDAV API 参考
+
+OSS Manager 提供完整的 WebDAV REST API，支持程序化访问和第三方集成。
+
+### API 基础信息
+
+- **基础 URL**: `http://your-domain:8080/api/v1/webdav`
+- **认证方式**: JWT Bearer Token
+- **内容类型**: `application/json`
+- **字符编码**: UTF-8
+
+### 认证
+
+所有 API 请求都需要包含有效的 JWT Token：
+
+```http
+Authorization: Bearer your-jwt-token
+```
+
+获取 JWT Token：
+```bash
+curl -X POST http://your-domain:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "your-username",
+    "password": "your-password"
+  }'
+```
+
+### 存储桶管理 API
+
+#### 获取可访问的存储桶列表
+
+```http
+GET /api/v1/webdav/buckets
+```
+
+**响应示例**：
+```json
+{
+  "success": true,
+  "data": [
+    "bucket-1",
+    "bucket-2",
+    "documents"
+  ]
+}
+```
+
+#### 获取存储桶连接信息
+
+```http
+GET /api/v1/webdav/buckets/{bucket-name}/connection-info
+```
+
+**响应示例**：
+```json
+{
+  "success": true,
+  "data": {
+    "bucket": "documents",
+    "webdav_url": "http://your-domain:8080/webdav/documents",
+    "protocol": "http",
+    "port": 8080,
+    "path": "/webdav/documents",
+    "supports_browser_access": true,
+    "requires_token_for_external_access": true
+  }
+}
+```
+
+### WebDAV 令牌管理 API
+
+#### 创建访问令牌
+
+```http
+POST /api/v1/webdav/tokens
+```
+
+**请求体**：
+```json
+{
+  "bucket": "documents",
+  "expires_in": 24,
+  "description": "客户端访问令牌"
+}
+```
+
+**响应示例**：
+```json
+{
+  "success": true,
+  "data": {
+    "id": 123,
+    "token": "wdv_1234567890abcdef",
+    "bucket": "documents",
+    "expires_at": "2024-12-14T10:00:00Z",
+    "created_at": "2024-12-13T10:00:00Z",
+    "description": "客户端访问令牌"
+  }
+}
+```
+
+#### 获取令牌列表
+
+```http
+GET /api/v1/webdav/tokens?bucket={bucket-name}
+```
+
+**响应示例**：
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 123,
+      "bucket": "documents",
+      "expires_at": "2024-12-14T10:00:00Z",
+      "created_at": "2024-12-13T10:00:00Z",
+      "description": "客户端访问令牌",
+      "is_expired": false,
+      "last_used_at": "2024-12-13T12:30:00Z"
+    }
+  ]
+}
+```
+
+#### 删除令牌
+
+```http
+DELETE /api/v1/webdav/tokens/{token-id}
+```
+
+### 文件操作代理 API
+
+#### 列出文件和目录
+
+```http
+GET /api/v1/webdav/proxy/{bucket-name}/files?prefix={path}
+```
+
+**参数**：
+- `prefix`: 可选，目录路径前缀
+- `limit`: 可选，返回数量限制，默认 100
+- `marker`: 可选，分页标记
+
+**响应示例**：
+```json
+{
+  "success": true,
+  "data": {
+    "files": [
+      {
+        "name": "document.pdf",
+        "path": "folder/document.pdf",
+        "size": 1024000,
+        "modified_time": "2024-12-13T10:00:00Z",
+        "content_type": "application/pdf",
+        "is_directory": false
+      },
+      {
+        "name": "subfolder",
+        "path": "folder/subfolder/",
+        "size": 0,
+        "modified_time": "2024-12-13T09:00:00Z",
+        "is_directory": true
+      }
+    ],
+    "has_more": false,
+    "next_marker": null
+  }
+}
+```
+
+#### 上传文件
+
+```http
+POST /api/v1/webdav/proxy/{bucket-name}/upload
+```
+
+**请求类型**: `multipart/form-data`
+
+**表单字段**：
+- `file`: 文件内容
+- `path`: 目标路径
+- `overwrite`: 可选，是否覆盖现有文件，默认 false
+
+**响应示例**：
+```json
+{
+  "success": true,
+  "data": {
+    "path": "folder/uploaded-file.txt",
+    "size": 1024,
+    "content_type": "text/plain",
+    "uploaded_at": "2024-12-13T10:30:00Z",
+    "md5": "d41d8cd98f00b204e9800998ecf8427e"
+  }
+}
+```
+
+#### 下载文件
+
+```http
+GET /api/v1/webdav/proxy/{bucket-name}/download?path={file-path}
+```
+
+**参数**：
+- `path`: 文件路径
+- `inline`: 可选，是否内联显示，默认 false（下载）
+
+#### 删除文件或目录
+
+```http
+DELETE /api/v1/webdav/proxy/{bucket-name}/files?path={file-path}
+```
+
+**响应示例**：
+```json
+{
+  "success": true,
+  "message": "文件删除成功"
+}
+```
+
+#### 创建目录
+
+```http
+POST /api/v1/webdav/proxy/{bucket-name}/directories
+```
+
+**请求体**：
+```json
+{
+  "path": "new-folder/subfolder"
+}
+```
+
+#### 移动/重命名文件
+
+```http
+PUT /api/v1/webdav/proxy/{bucket-name}/move
+```
+
+**请求体**：
+```json
+{
+  "source_path": "old-folder/file.txt",
+  "destination_path": "new-folder/renamed-file.txt"
+}
+```
+
+#### 复制文件
+
+```http
+PUT /api/v1/webdav/proxy/{bucket-name}/copy
+```
+
+**请求体**：
+```json
+{
+  "source_path": "folder/file.txt",
+  "destination_path": "backup/file.txt"
+}
+```
+
+### 统计和监控 API
+
+#### 获取存储桶统计信息
+
+```http
+GET /api/v1/webdav/buckets/{bucket-name}/stats
+```
+
+**响应示例**：
+```json
+{
+  "success": true,
+  "data": {
+    "bucket": "documents",
+    "total_files": 1250,
+    "total_size": 2048576000,
+    "last_modified": "2024-12-13T10:30:00Z",
+    "file_types": {
+      "pdf": 450,
+      "docx": 300,
+      "txt": 200,
+      "images": 150,
+      "others": 150
+    }
+  }
+}
+```
+
+#### 获取访问日志
+
+```http
+GET /api/v1/webdav/logs?bucket={bucket-name}&limit=50
+```
+
+**参数**：
+- `bucket`: 可选，筛选特定存储桶
+- `action`: 可选，筛选操作类型 (read/write/delete)
+- `start_time`: 可选，开始时间 (ISO 8601)
+- `end_time`: 可选，结束时间 (ISO 8601)
+- `limit`: 可选，返回数量，默认 50，最大 500
+
+**响应示例**：
+```json
+{
+  "success": true,
+  "data": {
+    "logs": [
+      {
+        "id": 12345,
+        "timestamp": "2024-12-13T10:30:00Z",
+        "user": "admin",
+        "action": "upload",
+        "bucket": "documents",
+        "path": "folder/file.pdf",
+        "size": 1024000,
+        "client_ip": "192.168.1.100",
+        "user_agent": "Mozilla/5.0..."
+      }
+    ],
+    "total": 1000,
+    "has_more": true
+  }
+}
+```
+
+### 错误处理
+
+所有 API 都返回标准的错误格式：
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_TOKEN",
+    "message": "访问令牌无效或已过期",
+    "details": {
+      "token_expired_at": "2024-12-13T10:00:00Z"
+    }
+  }
+}
+```
+
+**常见错误码**：
+- `UNAUTHORIZED`: 未认证或认证失败
+- `FORBIDDEN`: 权限不足
+- `BUCKET_NOT_FOUND`: 存储桶不存在
+- `FILE_NOT_FOUND`: 文件不存在
+- `INVALID_TOKEN`: 令牌无效
+- `TOKEN_EXPIRED`: 令牌已过期
+- `QUOTA_EXCEEDED`: 超出配额限制
+- `INVALID_PATH`: 路径格式无效
+
+### SDK 和代码示例
+
+#### JavaScript/TypeScript
+
+```typescript
+class WebDAVClient {
+  private baseURL: string;
+  private token: string;
+
+  constructor(baseURL: string, token: string) {
+    this.baseURL = baseURL;
+    this.token = token;
+  }
+
+  async listFiles(bucket: string, prefix?: string) {
+    const url = new URL(`${this.baseURL}/api/v1/webdav/proxy/${bucket}/files`);
+    if (prefix) url.searchParams.set('prefix', prefix);
+    
+    const response = await fetch(url.toString(), {
+      headers: {
+        'Authorization': `Bearer ${this.token}`
+      }
+    });
+    
+    return await response.json();
+  }
+
+  async uploadFile(bucket: string, path: string, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('path', path);
+    
+    const response = await fetch(`${this.baseURL}/api/v1/webdav/proxy/${bucket}/upload`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.token}`
+      },
+      body: formData
+    });
+    
+    return await response.json();
+  }
+}
+```
+
+#### Python
+
+```python
+import requests
+from typing import Optional, Dict, Any
+
+class WebDAVClient:
+    def __init__(self, base_url: str, token: str):
+        self.base_url = base_url.rstrip('/')
+        self.token = token
+        self.session = requests.Session()
+        self.session.headers.update({
+            'Authorization': f'Bearer {token}'
+        })
+    
+    def list_files(self, bucket: str, prefix: Optional[str] = None) -> Dict[str, Any]:
+        url = f"{self.base_url}/api/v1/webdav/proxy/{bucket}/files"
+        params = {'prefix': prefix} if prefix else {}
+        
+        response = self.session.get(url, params=params)
+        response.raise_for_status()
+        return response.json()
+    
+    def upload_file(self, bucket: str, path: str, file_data: bytes) -> Dict[str, Any]:
+        url = f"{self.base_url}/api/v1/webdav/proxy/{bucket}/upload"
+        files = {'file': file_data}
+        data = {'path': path}
+        
+        response = self.session.post(url, files=files, data=data)
+        response.raise_for_status()
+        return response.json()
+    
+    def create_token(self, bucket: str, expires_in: int = 24) -> Dict[str, Any]:
+        url = f"{self.base_url}/api/v1/webdav/tokens"
+        data = {
+            'bucket': bucket,
+            'expires_in': expires_in
+        }
+        
+        response = self.session.post(url, json=data)
+        response.raise_for_status()
+        return response.json()
+```
 
 ## 技术支持
 

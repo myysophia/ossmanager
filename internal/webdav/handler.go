@@ -35,10 +35,13 @@ func NewHandler(storageService oss.StorageService, db *gorm.DB, userID uint, buc
 
 // ServeHTTP 处理HTTP请求
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// 添加CORS头
+	// 添加浏览器兼容的CORS头
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, MKCOL, COPY, MOVE, PROPFIND, PROPPATCH, LOCK, UNLOCK")
-	w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Depth, If, If-None-Match, Lock-Token, Overwrite, Timeout, Destination")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, MKCOL, COPY, MOVE, PROPFIND, PROPPATCH, LOCK, UNLOCK, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Depth, If, If-None-Match, Lock-Token, Overwrite, Timeout, Destination, X-User-ID, X-Bucket")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	w.Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Type, Last-Modified, ETag, DAV")
+	w.Header().Set("Access-Control-Max-Age", "86400") // 24小时预检缓存
 
 	if r.Method == "OPTIONS" {
 		w.WriteHeader(http.StatusOK)

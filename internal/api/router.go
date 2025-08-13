@@ -37,6 +37,7 @@ func SetupRouter(storageFactory oss.StorageFactory, md5Calculator *function.MD5C
 	// WebDAV 处理器
 	// webdavHandler := handlers.NewWebDAVHandler(storageFactory, db) // 在需要时启用
 	webdavTokenHandler := handlers.NewWebDAVTokenHandler(db) // WebDAV Token 处理器
+	webdavProxyHandler := handlers.NewWebDAVProxyHandler(storageFactory, db) // WebDAV Proxy 处理器
 
 	// 公开路由
 	public := router.Group("/v1")
@@ -108,19 +109,27 @@ func SetupRouter(storageFactory oss.StorageFactory, md5Calculator *function.MD5C
 			permissions.DELETE("/:id", permissionHandler.Delete)
 		}
 
-		// OSS文件管理
-		authorized.POST("/oss/files", ossFileHandler.Upload)
-		authorized.GET("/oss/files", ossFileHandler.List)
-		authorized.DELETE("/oss/files/:id", ossFileHandler.Delete)
-		authorized.GET("/oss/files/:id/download", ossFileHandler.GetDownloadURL)
-		authorized.GET("/oss/files/check-duplicate", ossFileHandler.CheckDuplicateFile)
-		//authorized.GET("/oss/files/by-filename", ossFileHandler.GetByOriginalFilename)
+		// OSS文件管理（应用上传速率限制）
+		ossFiles := authorized.Group("/oss/files")
+		ossFiles.Use(middleware.RateLimitMiddleware(nil)) // 默认速率限制
+		{
+			// 上传操作使用更严格的速率限制
+			ossFiles.POST("", middleware.UploadRateLimitMiddleware(), ossFileHandler.Upload)
+			ossFiles.GET("", ossFileHandler.List)
+			ossFiles.DELETE("/:id", ossFileHandler.Delete)
+			ossFiles.GET("/:id/download", ossFileHandler.GetDownloadURL)
+			ossFiles.GET("/check-duplicate", ossFileHandler.CheckDuplicateFile)
+		}
 
-		// 分片上传
-		authorized.POST("/oss/multipart/init", ossFileHandler.InitMultipartUpload)
-		authorized.POST("/oss/multipart/complete", ossFileHandler.CompleteMultipartUpload)
-		authorized.DELETE("/oss/multipart/abort", ossFileHandler.AbortMultipartUpload)
-		authorized.GET("/oss/multipart/parts", ossFileHandler.ListUploadedParts)
+		// 分片上传（应用上传速率限制）
+		multipart := authorized.Group("/oss/multipart")
+		multipart.Use(middleware.UploadRateLimitMiddleware()) // 上传速率限制
+		{
+			multipart.POST("/init", ossFileHandler.InitMultipartUpload)
+			multipart.POST("/complete", ossFileHandler.CompleteMultipartUpload)
+			multipart.DELETE("/abort", ossFileHandler.AbortMultipartUpload)
+			multipart.GET("/parts", ossFileHandler.ListUploadedParts)
+		}
 
 		// MD5计算相关
 		authorized.POST("/oss/files/:id/md5", md5Handler.TriggerCalculation)
@@ -180,11 +189,40 @@ func SetupRouter(storageFactory oss.StorageFactory, md5Calculator *function.MD5C
 
 	}
 
+	// WebDAV Proxy API - RESTful endpoints that wrap WebDAV operations
+	if cfg != nil {
+		webdavProxyAPI := router.Group("/v1/webdav/objects")
+		webdavProxyAPI.Use(
+			middleware.WebDAVProxyAuthMiddleware(db, &cfg.JWT),
+			middleware.WebDAVRateLimitMiddleware(), // WebDAV专用速率限制
+		)
+		{
+			// GET /{bucket}?path=/dir → list directory (maps to PROPFIND)
+			// 目录列表现在支持分页：?offset=0&limit=100
+			webdavProxyAPI.GET("/:bucket", webdavProxyHandler.ListDirectory)
+			
+			// POST /{bucket}/file → upload file (maps to PUT)
+			webdavProxyAPI.POST("/:bucket/file", webdavProxyHandler.UploadFile)
+			
+			// DELETE /{bucket}?path=/file → delete file/folder (DELETE)
+			webdavProxyAPI.DELETE("/:bucket", webdavProxyHandler.DeleteFile)
+			
+			// PATCH /{bucket}/rename → rename/move (MOVE)
+			webdavProxyAPI.PATCH("/:bucket/rename", webdavProxyHandler.RenameFile)
+			
+			// POST /{bucket}/mkdir → create folder (MKCOL)
+			webdavProxyAPI.POST("/:bucket/mkdir", webdavProxyHandler.CreateDirectory)
+		}
+	}
+
 	// WebDAV 支持
 	if cfg != nil {
 		webdavHandler := handlers.NewWebDAVHandler(storageFactory, db)
 		webdavGroup := router.Group("/webdav")
-		webdavGroup.Use(middleware.WebDAVAuthMiddleware(db, &cfg.JWT))
+		webdavGroup.Use(
+			middleware.WebDAVAuthMiddleware(db, &cfg.JWT),
+			middleware.WebDAVRateLimitMiddleware(), // WebDAV专用速率限制
+		)
 		{
 			// 处理所有 WebDAV 请求
 			webdavGroup.Any("/*bucket", webdavHandler.ServeHTTP)
