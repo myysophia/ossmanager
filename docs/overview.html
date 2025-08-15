@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OSS Manager Overview</title>
+  <!-- TailwindCSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-1O3lbOj5ww3HdVNMerOEx+kt1/3uzMdGII4XESyqCCpt5TR1+t0NenE2no0RvrRZtGJPD7W82dMan3ZDV4+hHQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- React & ReactDOM -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <!-- Framer Motion -->
+  <script src="https://cdn.jsdelivr.net/npm/framer-motion@10.16.1/dist/framer-motion.umd.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- Babel for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-neutral-900 text-white">
+  <div id="app"></div>
+
+  <script type="text/babel">
+    const { motion } = window['framer-motion'];
+
+    const Section = ({ children, className }) => (
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+        className={"p-6 rounded-xl " + className}
+      >
+        {children}
+      </motion.div>
+    );
+
+    const App = () => {
+      React.useEffect(() => {
+        const ctx = document.getElementById('perfChart');
+        if (ctx) {
+          new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: ['部署时间', '启动时间', '内存占用', '镜像大小'],
+              datasets: [{
+                label: '分离架构',
+                data: [15, 45, 512, 1200],
+                backgroundColor: 'rgba(100,116,139,0.4)',
+              }, {
+                label: '单体架构',
+                data: [0.5, 18, 256, 45],
+                backgroundColor: 'rgba(236,72,153,0.6)',
+              }]
+            },
+            options: {
+              responsive: true,
+              scales: {
+                y: {
+                  ticks: { color: '#fff' },
+                  grid: { color: 'rgba(255,255,255,0.1)' }
+                },
+                x: {
+                  ticks: { color: '#fff' },
+                  grid: { color: 'rgba(255,255,255,0.1)' }
+                }
+              },
+              plugins: { legend: { labels: { color: '#fff' } } }
+            }
+          });
+        }
+      }, []);
+
+      return (
+        <div className="space-y-20">
+          {/* Hero Section */}
+          <section className="h-screen flex flex-col justify-center items-center text-center">
+            <motion.h1
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1 }}
+              className="text-6xl md:text-8xl font-extrabold tracking-tight"
+            >
+              <span className="bg-gradient-to-r from-pink-500/80 to-pink-500/20 bg-clip-text text-transparent">OSS 管理平台</span>
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 1 }}
+              className="mt-4 text-gray-300 text-sm md:text-base"
+            >Modern Object Storage Manager</motion.p>
+          </section>
+
+          {/* Bento Grid Sections */}
+          <section className="grid md:grid-cols-3 gap-6 px-4 max-w-7xl mx-auto">
+            <Section className="bg-gradient-to-br from-purple-500/40 to-purple-500/10 col-span-2">
+              <h2 className="text-4xl font-bold mb-4">特性 <span className="text-sm text-gray-300 font-light">Features</span></h2>
+              <ul className="space-y-2 text-lg">
+                <li><i className="fa-solid fa-cloud mr-2"></i>多云存储支持 <span className="text-sm text-gray-400">Aliyun OSS, AWS S3, CloudFlare R2</span></li>
+                <li><i className="fa-solid fa-share-nodes mr-2"></i>WebDAV 支持 <span className="text-sm text-gray-400">File manager ready</span></li>
+                <li><i className="fa-solid fa-user-shield mr-2"></i>用户权限管理 <span className="text-sm text-gray-400">RBAC based</span></li>
+                <li><i className="fa-solid fa-file-arrow-up mr-2"></i>分片上传 & MD5 校验</li>
+                <li><i className="fa-solid fa-book mr-2"></i>审计日志</li>
+              </ul>
+            </Section>
+
+            <Section className="bg-gradient-to-br from-emerald-500/40 to-emerald-500/10">
+              <h2 className="text-4xl font-bold mb-4">架构 <span className="text-sm text-gray-300 font-light">Architecture</span></h2>
+              <ul className="space-y-2 text-lg">
+                <li>单体应用 <span className="text-sm text-gray-400">Monolithic</span></li>
+                <li>嵌入式前端 <span className="text-sm text-gray-400">Static assets embedded</span></li>
+                <li>Go 后端 <span className="text-sm text-gray-400">High performance</span></li>
+                <li>React 前端 <span className="text-sm text-gray-400">Modern UI</span></li>
+              </ul>
+            </Section>
+
+            <Section className="bg-gradient-to-br from-sky-500/40 to-sky-500/10 col-span-3">
+              <h2 className="text-4xl font-bold mb-4">技术栈 <span className="text-sm text-gray-300 font-light">Tech Stack</span></h2>
+              <div className="flex flex-wrap gap-4 text-lg">
+                <div className="flex items-center"><i className="fa-brands fa-golang text-2xl mr-2"></i>Go 1.21+</div>
+                <div className="flex items-center"><i className="fa-brands fa-react text-2xl mr-2"></i>Next.js 14+</div>
+                <div className="flex items-center"><i className="fa-brands fa-js text-2xl mr-2"></i>TypeScript 5</div>
+                <div className="flex items-center"><i className="fa-solid fa-database text-2xl mr-2"></i>PostgreSQL 14+</div>
+                <div className="flex items-center"><i className="fa-brands fa-docker text-2xl mr-2"></i>Docker/K8s</div>
+                <div className="flex items-center"><i className="fa-solid fa-cloud mr-2"></i>AWS / 阿里云 / Cloudflare</div>
+              </div>
+            </Section>
+
+            <Section className="bg-gradient-to-br from-fuchsia-500/40 to-fuchsia-500/10 col-span-2">
+              <h2 className="text-4xl font-bold mb-4">性能 <span className="text-sm text-gray-300 font-light">Performance</span></h2>
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                  <p className="text-5xl font-extrabold">96%+</p>
+                  <p className="text-sm text-gray-400">部署时间缩短</p>
+                </div>
+                <div>
+                  <p className="text-5xl font-extrabold">60%</p>
+                  <p className="text-sm text-gray-400">启动加速</p>
+                </div>
+                <div>
+                  <p className="text-5xl font-extrabold">50%</p>
+                  <p className="text-sm text-gray-400">内存减少</p>
+                </div>
+                <div>
+                  <p className="text-5xl font-extrabold">96%+</p>
+                  <p className="text-sm text-gray-400">镜像更小</p>
+                </div>
+              </div>
+              <canvas id="perfChart" height="150"></canvas>
+            </Section>
+
+            <Section className="bg-gradient-to-br from-orange-500/40 to-orange-500/10">
+              <h2 className="text-4xl font-bold mb-4">快速开始 <span className="text-sm text-gray-300 font-light">Quick Start</span></h2>
+              <pre className="text-sm bg-black/40 p-3 rounded-md overflow-x-auto"><code># 获取源码
+ git clone https://github.com/myysophia/ossmanager.git
+ cd ossmanager
+
+ # 安装依赖并构建
+ make deps
+ make all
+
+ # 配置
+ cp configs/app.example.yaml configs/app.yaml
+ cp configs/oss.example.yaml configs/oss.yaml
+
+ # 启动
+ ./build/ossmanager</code></pre>
+              <p className="mt-2 text-sm text-gray-400">Web: http://localhost:8080</p>
+            </Section>
+
+            <Section className="bg-gradient-to-br from-lime-500/40 to-lime-500/10 col-span-2">
+              <h2 className="text-4xl font-bold mb-4">贡献指南 <span className="text-sm text-gray-300 font-light">Contributing</span></h2>
+              <ol className="list-decimal ml-5 space-y-1 text-lg">
+                <li>Fork & 克隆仓库</li>
+                <li>安装工具 <span className="text-sm text-gray-400">make install-tools</span></li>
+                <li>开发 & 测试 <span className="text-sm text-gray-400">make test</span></li>
+                <li>提交 PR 并进行代码审查</li>
+              </ol>
+            </Section>
+
+            <Section className="bg-gradient-to-br from-yellow-500/40 to-yellow-500/10">
+              <h2 className="text-4xl font-bold mb-4">许可 <span className="text-sm text-gray-300 font-light">License</span></h2>
+              <p className="text-lg">MIT License</p>
+              <p className="text-sm text-gray-400">© 2024 OSS Manager Contributors</p>
+            </Section>
+
+            <Section className="bg-gradient-to-br from-red-500/40 to-red-500/10 col-span-3">
+              <h2 className="text-4xl font-bold mb-4">社区 <span className="text-sm text-gray-300 font-light">Community</span></h2>
+              <ul className="space-y-2 text-lg">
+                <li><i className="fa-solid fa-book-open mr-2"></i>文档: <a href="https://docs.ossmanager.io" className="underline">docs.ossmanager.io</a></li>
+                <li><i className="fa-brands fa-github mr-2"></i>讨论: GitHub Discussions</li>
+                <li><i className="fa-solid fa-bug mr-2"></i>问题: GitHub Issues</li>
+                <li><i className="fa-solid fa-envelope mr-2"></i>邮件: support@ossmanager.io</li>
+              </ul>
+            </Section>
+          </section>
+        </div>
+      );
+    };
+
+    ReactDOM.createRoot(document.getElementById('app')).render(<App />);
+  </script>
+</body>
+</html>
