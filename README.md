@@ -18,6 +18,53 @@
   <img src="https://raw.githubusercontent.com/myysophia/ossmanager/main/docs/webdav-browser-screenshot.png" alt="WebDAV 文件浏览器" width="800" />
 </div>
 
+## 📸 系统截图
+
+### 📁 文件管理
+
+<div align="center">
+  <img src="docs/screenshots/文件查询.jpg" alt="文件查询" width="800" />
+  <p><em>文件查询和浏览界面</em></p>
+</div>
+
+<div align="center">
+  <img src="docs/screenshots/文件上传.jpg" alt="文件上传" width="800" />
+  <p><em>文件上传界面 - 支持拖拽上传和进度显示</em></p>
+</div>
+
+<div align="center">
+  <img src="docs/screenshots/上传页面2.jpg" alt="上传页面详细" width="800" />
+  <p><em>文件上传详细页面 - 支持分片上传和断点续传</em></p>
+</div>
+
+### 🔗 文件分享
+
+<div align="center">
+  <img src="docs/screenshots/文件分享.jpg" alt="文件分享" width="800" />
+  <p><em>文件分享功能 - 生成安全的分享链接</em></p>
+</div>
+
+### 👥 用户管理
+
+<div align="center">
+  <img src="docs/screenshots/用户管理.jpg" alt="用户管理" width="800" />
+  <p><em>用户管理界面 - 支持RBAC权限控制</em></p>
+</div>
+
+### ☁️ 存储管理
+
+<div align="center">
+  <img src="docs/screenshots/region-bucket管理.jpg" alt="存储桶管理" width="800" />
+  <p><em>多云存储桶管理 - 支持阿里云OSS、AWS S3、CloudFlare R2</em></p>
+</div>
+
+### 📊 审计日志
+
+<div align="center">
+  <img src="docs/screenshots/审计日志.jpg" alt="审计日志" width="800" />
+  <p><em>完整的操作审计日志 - 记录所有关键操作</em></p>
+</div>
+
 ---
 
 ## 特性
