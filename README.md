@@ -20,50 +20,22 @@
 
 ## 📸 系统截图
 
-### 📁 文件管理
+### 🖥️ 核心功能界面展示
 
-<div align="center">
-  <img src="docs/screenshots/文件查询.jpg" alt="文件查询" width="800" />
-  <p><em>文件查询和浏览界面</em></p>
-</div>
+| 功能模块 | 界面截图 | 功能描述 |
+|---------|---------|----------|
+| **📁 文件查询** | <img src="docs/screenshots/文件查询.jpg" alt="文件查询" width="400" /> | 文件查询和浏览界面，支持多条件搜索和文件预览 |
+| **📤 文件上传** | <img src="docs/screenshots/文件上传.jpg" alt="文件上传" width="400" /> | 支持拖拽上传、批量上传和实时进度显示 |
+| **⚡ 分片上传** | <img src="docs/screenshots/上传页面2.jpg" alt="分片上传" width="400" /> | 大文件分片上传和断点续传，提升上传效率 |
+| **🔗 文件分享** | <img src="docs/screenshots/文件分享.jpg" alt="文件分享" width="400" /> | 生成安全的分享链接，支持访问权限和过期时间设置 |
 
-<div align="center">
-  <img src="docs/screenshots/文件上传.jpg" alt="文件上传" width="800" />
-  <p><em>文件上传界面 - 支持拖拽上传和进度显示</em></p>
-</div>
+### 🛠️ 管理功能界面展示
 
-<div align="center">
-  <img src="docs/screenshots/上传页面2.jpg" alt="上传页面详细" width="800" />
-  <p><em>文件上传详细页面 - 支持分片上传和断点续传</em></p>
-</div>
-
-### 🔗 文件分享
-
-<div align="center">
-  <img src="docs/screenshots/文件分享.jpg" alt="文件分享" width="800" />
-  <p><em>文件分享功能 - 生成安全的分享链接</em></p>
-</div>
-
-### 👥 用户管理
-
-<div align="center">
-  <img src="docs/screenshots/用户管理.jpg" alt="用户管理" width="800" />
-  <p><em>用户管理界面 - 支持RBAC权限控制</em></p>
-</div>
-
-### ☁️ 存储管理
-
-<div align="center">
-  <img src="docs/screenshots/region-bucket管理.jpg" alt="存储桶管理" width="800" />
-  <p><em>多云存储桶管理 - 支持阿里云OSS、AWS S3、CloudFlare R2</em></p>
-</div>
-
-### 📊 审计日志
-
-<div align="center">
-  <img src="docs/screenshots/审计日志.jpg" alt="审计日志" width="800" />
-  <p><em>完整的操作审计日志 - 记录所有关键操作</em></p>
-</div>
+| 功能模块 | 界面截图 | 功能描述 |
+|---------|---------|----------|
+| **👥 用户管理** | <img src="docs/screenshots/用户管理.jpg" alt="用户管理" width="400" /> | 基于RBAC的用户权限管理，支持角色分配和细粒度权限控制 |
+| **☁️ 存储管理** | <img src="docs/screenshots/region-bucket管理.jpg" alt="存储管理" width="400" /> | 多云存储桶统一管理，支持阿里云OSS、AWS S3、CloudFlare R2 |
+| **📊 审计日志** | <img src="docs/screenshots/审计日志.jpg" alt="审计日志" width="400" /> | 完整的操作审计日志记录，支持日志查询和导出功能 |
 
 ---
 
